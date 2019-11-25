@@ -7,6 +7,7 @@
 (defun run-app ()
   (stty '("-echo"))
   (stty '("raw"))
+  (command "?1049" #\h)
   (let ((state `(tabs ("file 1" "file 2" "file 3")
                      selected 0
                      mode normal
@@ -17,6 +18,7 @@
       (let ((c (read-char)))
         (do-input state c)
         (draw-screen state))))
+  (command "?1049" #\l)
   (stty '("sane")))
 
 (defun do-input (state ch)

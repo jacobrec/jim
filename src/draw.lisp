@@ -1,6 +1,7 @@
 (defpackage :jim-io
   (:use :common-lisp :jim-utils)
-  (:export draw-screen))
+  (:export draw-screen
+           command))
 
 (defconstant BLK 0)
 (defconstant RED 1)
@@ -92,6 +93,7 @@
 
   (draw-tabs (getf screen 'tabs) (getf screen 'selected))
   (move-to 1 2)
+  (format t "~a" (getf screen 'buffer))
   (draw-status
     (getf screen 'mode)
     (nth (getf screen 'selected) (getf screen 'tabs))
