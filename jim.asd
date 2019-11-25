@@ -7,7 +7,7 @@
   :version "0.0"
   :author  "Jacob Reckhard"
   :license "LGPLv3"
-  :depends-on ("trivial-shell")
+  :depends-on ("jbuffer")
   :components ((:module "src"
                 :components
                 ((:file "buffer")
