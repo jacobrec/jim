@@ -2,22 +2,50 @@
   (:use :common-lisp)
   (:export run-app))
 
+(defvar *running* t)
+
 (defun run-app ()
-  (trivial-shell:shell-command "stty -echo && stty raw")
+  (stty '("-echo"))
+  (stty '("raw"))
   (let ((state `(tabs ("file 1" "file 2" "file 3")
                      selected 0
-                     mode "Normal"
+                     mode normal
                      buffer ,(buffer-new)
                      cmd nil)))
     (draw-screen state)
-    (loop while t do
+    (loop while *running* do
       (let ((c (read-char)))
-        (setf (getf state 'buffer)
-              (buffer-set
-                (getf state 'buffer)
-                (concatenate 'string
-                             (getf state 'buffer)
-                             (list c))))
+        (do-input state c)
         (draw-screen state))))
-  (trivial-shell:shell-command "stty sane"))
+  (stty '("sane")))
 
+(defun do-input (state ch)
+  (case (getf state 'mode)
+    ((normal)
+     (cond
+       ((char= #\: ch) (setf (getf state 'mode) 'cmd))
+       ((char= #\i ch) (setf (getf state 'mode) 'insert))))
+    ((cmd)
+     (cond
+       ((char= #\escape ch) (setf (getf state 'mode) 'normal))
+       ((char= #\return ch)
+        (do-command state)
+        (setf (getf state 'mode) 'normal))
+       (t (setf (getf state 'cmd) (cons ch (getf state 'cmd))))))
+    ((insert)
+     (cond
+       ((char= #\escape ch) (setf (getf state 'mode) 'normal))
+       (t (setf (getf state 'buffer)
+               (buffer-set
+                 (getf state 'buffer)
+                 (concatenate 'string
+                              (getf state 'buffer)
+                              (list ch)))))))))
+
+(defun do-command (state)
+  (let ((cmd (string-trim '(#\space #\return #\linefeed)
+                          (concatenate
+                            'string
+                            (reverse (getf state 'cmd))))))
+    (cond
+      ((string= "q" cmd) (setf *running* nil)))))

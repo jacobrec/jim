@@ -1,5 +1,5 @@
 (defpackage :jim-io
-  (:use :common-lisp)
+  (:use :common-lisp :jim-utils)
   (:export draw-screen))
 
 (defconstant BLK 0)
@@ -12,16 +12,6 @@
 (defconstant WHT 7)
 (defconstant RST 9)
 
-(defun shell (cmd args)
-    (read-line (process-output (shell-stream cmd args))))
-
-(defun shell-stream (cmd args)
-  (let ((process (sb-ext:run-program cmd args
-                                    :output :stream
-                                    :input t
-                                    :wait t)))
-    (process-output process)))
-
 (defun command (&rest args)
   (let* ((m (reverse args)) (e (car m)) (a (reverse (cdr m))))
     (format t "~a[~{~a~^;~}~a" #\escape a e)))
@@ -33,12 +23,12 @@
                 color ground) #\m)))
 
 (defun term-width ()
-  (let ((strm (shell-stream "/usr/bin/stty" '("size"))))
-    (read strm)
-    (read strm)))
+  (let ((strm (stty '("size"))))
+    (read strm) ; ignore height
+    (read strm))); return width
 
 (defun term-height ()
-  (read (shell-stream "/usr/bin/stty" '("size"))))
+  (read (stty '("size"))))
 
 (defun save-cursor ()
   (command #\s))
@@ -91,9 +81,8 @@
   (format t "~%"))
 
 (defun draw-command (cmd)
-  (when cmd
-    (move-to 1 (term-height))
-    (format t ":~a" cmd)))
+  (move-to 1 (term-height))
+  (format t ":~a" (concatenate 'string (reverse cmd))))
 
 
 (defun draw-screen (screen)
@@ -102,13 +91,15 @@
   (command 6 #\p) ; Set cursor invisible
 
   (draw-tabs (getf screen 'tabs) (getf screen 'selected))
-  (format t "~a" (getf screen 'buffer))
+  (move-to 1 2)
   (draw-status
     (getf screen 'mode)
     (nth (getf screen 'selected) (getf screen 'tabs))
     "row/lines : col") ; derive this last one from buffer
-  (draw-command (getf screen 'cmd))
+  (when (equal 'cmd (getf screen 'mode))
+    (draw-command (getf screen 'cmd)))
 
+  (finish-output)
   (command 7 #\p) ; Set cursor visible
   (restore-cursor))
 
