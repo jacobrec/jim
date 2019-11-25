@@ -1,4 +1,4 @@
-(defpackage :jedit-buffer
+(defpackage :jim-buffer
   (:use :common-lisp)
   (:export buffer-new
            buffer-set))

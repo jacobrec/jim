@@ -1,4 +1,4 @@
-(defpackage :jedit-app
+(defpackage :jim-app
   (:use :common-lisp)
   (:export run-app))
 
@@ -19,8 +19,5 @@
                              (getf state 'buffer)
                              (list c))))
         (draw-screen state))))
-
   (trivial-shell:shell-command "stty sane"))
-
-
 

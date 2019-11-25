@@ -1,5 +1,5 @@
 (pushnew (truename ".") ql:*local-project-directories*)
 (ql:register-local-projects)
-(ql:quickload :jedit)
+(ql:quickload :jim)
 
 (run-app)

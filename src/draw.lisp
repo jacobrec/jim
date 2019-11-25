@@ -8,7 +8,7 @@
 (defconstant WHT 7)
 (defconstant RST 9)
 
-(defpackage :jedit-io
+(defpackage :jim-io
   (:use :common-lisp)
   (:export draw-screen))
 

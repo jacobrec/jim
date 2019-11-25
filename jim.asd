@@ -1,11 +1,12 @@
-(defpackage :jedit-asd
+(defpackage :jim-asd
   (:use :cl :asdf))
 
-(in-package :jedit-asd)
+(in-package :jim-asd)
 
-(defsystem jedit
+(defsystem jim
   :version "0.0"
   :author  "Jacob Reckhard"
+  :license "LGPLv3"
   :depends-on ("trivial-shell")
   :components ((:module "src"
                 :components
