@@ -1,3 +1,7 @@
+(defpackage :jim-io
+  (:use :common-lisp)
+  (:export draw-screen))
+
 (defconstant BLK 0)
 (defconstant RED 1)
 (defconstant GRN 2)
@@ -8,9 +12,15 @@
 (defconstant WHT 7)
 (defconstant RST 9)
 
-(defpackage :jim-io
-  (:use :common-lisp)
-  (:export draw-screen))
+(defun shell (cmd args)
+    (read-line (process-output (shell-stream cmd args))))
+
+(defun shell-stream (cmd args)
+  (let ((process (sb-ext:run-program cmd args
+                                    :output :stream
+                                    :input t
+                                    :wait t)))
+    (process-output process)))
 
 (defun command (&rest args)
   (let* ((m (reverse args)) (e (car m)) (a (reverse (cdr m))))
@@ -23,16 +33,12 @@
                 color ground) #\m)))
 
 (defun term-width ()
-  (parse-integer
-    (string-trim
-      '(#\newline)
-      (trivial-shell:shell-command "tput cols"))))
+  (let ((strm (shell-stream "/usr/bin/stty" '("size"))))
+    (read strm)
+    (read strm)))
 
 (defun term-height ()
-  (parse-integer
-    (string-trim
-      '(#\newline)
-      (trivial-shell:shell-command "tput lines"))))
+  (read (shell-stream "/usr/bin/stty" '("size"))))
 
 (defun save-cursor ()
   (command #\s))
