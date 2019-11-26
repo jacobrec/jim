@@ -58,8 +58,7 @@
       (set-color BLK 'bg 'bright)
       (incf c)))
   (set-color RST 'fg)
-  (set-color RST 'bg)
-  (format t "~%"))
+  (set-color RST 'bg))
 
 
 (defun draw-status (left center right)
@@ -78,34 +77,45 @@
   (format t "~a" right)
 
   (set-color RST 'fg)
-  (set-color RST 'bg)
-  (format t "~%"))
+  (set-color RST 'bg))
 
 (defun draw-command (cmd)
   (move-to 1 (term-height))
   (format t ":~a" (concatenate 'string (reverse cmd))))
 
+(defun draw-buffer (rbuf)
+  (move-to 1 2)
+  ; (jbrope:print-rope rbuf)
+  (loop for chunk in (jbrope:chunks rbuf) do
+    (map nil
+         (lambda (x)
+           (cond ((char= x #\newline)
+                  (format t "~C~C" #\newline #\return))
+                 (t (format t "~C" x))))
+         chunk)))
 
 (defun draw-screen (screen)
   (command 2 #\J) ; clear screeen
-  (save-cursor)
-  (command 6 #\p) ; Set cursor invisible
+  (command 7 #\p) ; Set cursor invisible
 
   (draw-tabs (getf screen 'tabs) (getf screen 'selected))
-  (move-to 1 2)
 
   ; Draw buffer
-  (format t "~a" (concatenate 'string (getf screen 'buffer)))
+  (draw-buffer (jbedit:buffer-head (getf screen 'buffer)))
 
   (draw-status
     (getf screen 'mode)
-    (nth (getf screen 'selected) (getf screen 'tabs))
-    "row/lines : col") ; derive this last one from buffer
+    (format nil "~a" (getf screen 'cur))
+    ;(nth (getf screen 'selected) (getf screen 'tabs))
+    (format nil "R:~a C~a"
+            (cursor-line (getf screen 'cur))
+            (cursor-col (getf screen 'cur))))
   (when (equal 'cmd (getf screen 'mode))
     (draw-command (getf screen 'cmd)))
 
-  (finish-output)
-  (command 7 #\p) ; Set cursor visible
-  (restore-cursor))
+  (command 6 #\p) ; Set cursor visible
+  (move-to (cursor-col (getf screen 'cur))
+           (1+ (cursor-line (getf screen 'cur))))
+  (finish-output))
 
 

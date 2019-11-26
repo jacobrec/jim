@@ -3,8 +3,8 @@
   (:export buffer-new
            buffer-set))
 
-(defun buffer-new ()
-  "")
+(defun buffer-new (filename)
+  (jbedit:open-buff filename))
 
 (defun buffer-set (buffer data)
   data)
