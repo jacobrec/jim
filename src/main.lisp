@@ -4,10 +4,6 @@
 
 (defvar *running* t)
 
-(defstruct cursor
-  index
-  line
-  col)
 
 (defun move-to-cursor (r c state)
   (let ((cur (getf state 'cur)))

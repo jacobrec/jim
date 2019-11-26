@@ -4,6 +4,11 @@
            shell
            shell-stream))
 
+(defstruct cursor
+  index
+  line
+  col)
+
 (defun stty (args)
   (shell-stream "/usr/bin/stty" args))
 
