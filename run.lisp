@@ -8,4 +8,4 @@
 (ql:register-local-projects)
 (ql:quickload :jim)
 
-(run-app)
+(jim-app:run-app)
