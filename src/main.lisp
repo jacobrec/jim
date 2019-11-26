@@ -1,5 +1,5 @@
 (defpackage :jim-app
-  (:use :common-lisp)
+  (:use :common-lisp :jim-utils)
   (:export run-app))
 
 (defvar *running* t)
@@ -11,13 +11,17 @@
 
 (defun move-to-cursor (r c state)
   (let ((cur (getf state 'cur)))
-    (setf (cursor-line cur) (max 1 r))
-    (setf (cursor-col cur) (max 1 c))
+    (setf (cursor-line cur) (min (1- (term-height)) (max 1 r)))
+    (setf (cursor-col cur) (min (term-width) (max 1 c)))
+    (set-dirty state 'status)
     (setf (cursor-index cur)
           (jbrope:coord-to-idx
            (jbedit:buffer-head (getf state 'buffer))
            (1- (cursor-line cur))
            (1- (cursor-col cur))))))
+
+(defun set-dirty (state place)
+  (setf (getf state 'redraw) (cons place (getf state 'redraw))))
 
 (defun move-cursor (r c state)
   (move-to-cursor
@@ -31,14 +35,15 @@
   (stty '("raw"))
   (command "?1049" #\h)
   (let ((state `(tabs ("tmp.txt")
-                     selected 0
-                     mode normal
-                     buffer ,(buffer-new "tmp.txt")
-                     cur ,(make-cursor
-                            :index 0
-                            :line 1
-                            :col 1)
-                     cmd nil)))
+                 selected 0
+                 mode normal
+                 buffer ,(buffer-new "tmp.txt")
+                 cur ,(make-cursor
+                        :index 0
+                        :line 1
+                        :col 1)
+                 redraw (status buffer tabs cmd)
+                 cmd nil)))
     (draw-screen state)
     (loop while *running* do
       (let ((c (read-char)))
@@ -63,11 +68,14 @@
      (cond
        ((char= #\escape ch) (setf (getf state 'mode) 'normal))
        ((char= #\rubout ch) (setf (getf state 'cmd)
-                                  (cdr (getf state 'cmd))))
+                                  (cdr (getf state 'cmd)))
+                            (set-dirty state 'cmd))
        ((char= #\return ch)
         (do-command state)
-        (setf (getf state 'mode) 'normal))
-       (t (setf (getf state 'cmd) (cons ch (getf state 'cmd))))))
+        (setf (getf state 'mode) 'normal)
+        (set-dirty state 'cmd))
+       (t (setf (getf state 'cmd) (cons ch (getf state 'cmd)))
+          (set-dirty state 'cmd))))
     ((insert)
      (cond
        ((char= #\escape ch) (setf (getf state 'mode) 'normal))

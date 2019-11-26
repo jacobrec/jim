@@ -23,14 +23,6 @@
                     60 0)
                 color ground) #\m)))
 
-(defun term-width ()
-  (let ((strm (stty '("size"))))
-    (read strm) ; ignore height
-    (read strm))); return width
-
-(defun term-height ()
-  (read (stty '("size"))))
-
 (defun save-cursor ()
   (command #\s))
 
@@ -44,7 +36,7 @@
   (set-color BLK 'bg 'bright)
   (set-color YEL 'fg 'bright)
   (move-to 1 1)
-  (format t "~a" (make-string (term-width) :initial-element #\ ))
+  (draw-blank-line)
   (move-to 1 1)
   (let ((c 0))
     (loop for x in tabs do
@@ -65,7 +57,7 @@
   (set-color BLK 'bg 'bright)
   (set-color YEL 'fg 'bright)
   (move-to 1 (- (term-height) 1))
-  (format t "~a" (make-string (term-width) :initial-element #\ ))
+  (draw-blank-line)
 
   (move-to 1 (- (term-height) 1))
   (format t "~a" left)
@@ -79,7 +71,12 @@
   (set-color RST 'fg)
   (set-color RST 'bg))
 
+(defun draw-blank-line ()
+  (format t "~a" (make-string (term-width) :initial-element #\ )))
+
 (defun draw-command (cmd)
+  (move-to 1 (term-height))
+  (draw-blank-line)
   (move-to 1 (term-height))
   (format t ":~a" (concatenate 'string (reverse cmd))))
 
@@ -94,28 +91,38 @@
                  (t (format t "~C" x))))
          chunk)))
 
-(defun draw-screen (screen)
-  (command 2 #\J) ; clear screeen
-  (command 7 #\p) ; Set cursor invisible
+(defun is-dirty (screen place)
+  (let ((res (find place
+               (getf screen 'redraw))))
+    (delete place (getf screen 'redraw))
+    res))
 
-  (draw-tabs (getf screen 'tabs) (getf screen 'selected))
+(defun draw-screen (screen)
+  ;(command 2 #\J) ; clear screeen
+  (command "?25" #\l) ; Set cursor invisible
+
+  (when (is-dirty screen 'tabs)
+    (draw-tabs (getf screen 'tabs) (getf screen 'selected)))
 
   ; Draw buffer
-  (draw-buffer (jbedit:buffer-head (getf screen 'buffer)))
+  (when (is-dirty screen 'buffer)
+    (draw-buffer (jbedit:buffer-head (getf screen 'buffer))))
 
-  (draw-status
-    (getf screen 'mode)
-    (format nil "~a" (getf screen 'cur))
-    ;(nth (getf screen 'selected) (getf screen 'tabs))
-    (format nil "R:~a C~a"
-            (cursor-line (getf screen 'cur))
-            (cursor-col (getf screen 'cur))))
-  (when (equal 'cmd (getf screen 'mode))
-    (draw-command (getf screen 'cmd)))
+  (when (is-dirty screen 'status)
+    (draw-status
+      (getf screen 'mode)
+      (format nil "~a" (getf screen 'cur))
+      ;(nth (getf screen 'selected) (getf screen 'tabs))
+      (format nil "R:~a C~a"
+              (cursor-line (getf screen 'cur))
+              (cursor-col (getf screen 'cur)))))
+  (when (is-dirty screen 'cmd)
+    (when (equal 'cmd (getf screen 'mode))
+      (draw-command (getf screen 'cmd))))
 
-  (command 6 #\p) ; Set cursor visible
   (move-to (cursor-col (getf screen 'cur))
            (1+ (cursor-line (getf screen 'cur))))
+  (command "?25" #\h) ; Set cursor visible
   (finish-output))
 
 

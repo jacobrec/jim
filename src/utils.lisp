@@ -17,3 +17,20 @@
                                     :wait t)))
     (process-output process)))
 
+
+(let ((w 0) (h 0))
+  (defun term-width ()
+    (when (= w 0)
+      (let ((strm (stty '("size"))))
+        (read strm) ; ignore height
+        (let ((nw (read strm)))
+          (when nw
+            (setf w nw)))))
+    w)
+
+  (defun term-height ()
+    (when (= h 0)
+      (let ((nh (read (stty '("size")))))
+        (when nh
+          (setf h nh))))
+    h))
