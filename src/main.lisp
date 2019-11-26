@@ -39,7 +39,7 @@
   (let ((state (list
                  :tabs (list "tmp.txt")
                  :selected 0
-                 :mode 'normal
+                 :mode :normal
                  :buffer (jbedit:open-buff "tmp.txt")
                  :cur (jim-utils:make-cursor
                         :index 0
@@ -57,33 +57,33 @@
 
 (defun do-input (state ch)
   (case (getf state :mode)
-    ((normal)
+    ((:normal)
      (cond
        ((char= #\: ch)
         (setf (getf state :cmd) nil)
-        (set-mode state 'cmd))
-       ((char= #\i ch) (set-mode state 'insert))
+        (set-mode state :cmd))
+       ((char= #\i ch) (set-mode state :insert))
        ((char= #\h ch) (move-cursor 0 -1 state))
        ((char= #\j ch) (move-cursor 1 0 state))
        ((char= #\k ch) (move-cursor -1 0 state))
        ((char= #\l ch) (move-cursor 0 1 state))
        ((char= #\0 ch) (move-cursor 0 -1000000 state))
        ((char= #\$ ch) (move-cursor 0 1000000 state))))
-    ((cmd)
+    ((:cmd)
      (cond
-       ((char= #\escape ch) (set-mode state 'normal))
+       ((char= #\escape ch) (set-mode state :normal))
        ((char= #\rubout ch) (setf (getf state :cmd)
                                   (cdr (getf state :cmd)))
                             (set-dirty state :cmd))
        ((char= #\return ch)
         (do-command state)
-        (set-mode state 'normal)
+        (set-mode state :normal)
         (set-dirty state :cmd))
        (t (setf (getf state :cmd) (cons ch (getf state :cmd)))
           (set-dirty state :cmd))))
-    ((insert)
+    ((:insert)
      (cond
-       ((char= #\escape ch) (set-mode state 'normal))
+       ((char= #\escape ch) (set-mode state :normal))
        ((char= #\rubout ch) (vector-pop (getf state :buffer)))
        (t (setf (getf state :buffer)
                 (jbedit:insert (getf state :buffer)
