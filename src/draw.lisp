@@ -93,7 +93,10 @@
 
   (draw-tabs (getf screen 'tabs) (getf screen 'selected))
   (move-to 1 2)
-  (format t "~a" (getf screen 'buffer))
+
+  ; Draw buffer
+  (format t "~a" (concatenate 'string (getf screen 'buffer)))
+
   (draw-status
     (getf screen 'mode)
     (nth (getf screen 'selected) (getf screen 'tabs))

@@ -11,7 +11,7 @@
   (let ((state `(tabs ("file 1" "file 2" "file 3")
                      selected 0
                      mode normal
-                     buffer ,(buffer-new)
+                     buffer ,(make-array 0 :adjustable t :fill-pointer 0)
                      cmd nil)))
     (draw-screen state)
     (loop while *running* do
@@ -25,11 +25,15 @@
   (case (getf state 'mode)
     ((normal)
      (cond
-       ((char= #\: ch) (setf (getf state 'mode) 'cmd))
+       ((char= #\: ch)
+        (setf (getf state 'cmd) nil)
+        (setf (getf state 'mode) 'cmd))
        ((char= #\i ch) (setf (getf state 'mode) 'insert))))
     ((cmd)
      (cond
        ((char= #\escape ch) (setf (getf state 'mode) 'normal))
+       ((char= #\rubout ch) (setf (getf state 'cmd)
+                                  (cdr (getf state 'cmd))))
        ((char= #\return ch)
         (do-command state)
         (setf (getf state 'mode) 'normal))
@@ -37,12 +41,8 @@
     ((insert)
      (cond
        ((char= #\escape ch) (setf (getf state 'mode) 'normal))
-       (t (setf (getf state 'buffer)
-               (buffer-set
-                 (getf state 'buffer)
-                 (concatenate 'string
-                              (getf state 'buffer)
-                              (list ch)))))))))
+       ((char= #\rubout ch) (vector-pop (getf state 'buffer)))
+       (t (vector-push-extend ch (getf state 'buffer)))))))
 
 (defun do-command (state)
   (let ((cmd (string-trim '(#\space #\return #\linefeed)
