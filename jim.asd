@@ -10,8 +10,7 @@
   :depends-on ("jbuffer")
   :components ((:module "src"
                 :components
-                ((:file "buffer")
-                 (:file "utils")
-                 (:file "draw" :depends-on ("buffer" "utils"))
-                 (:file "main" :depends-on ("buffer" "utils" "draw")))))
+                ((:file "utils")
+                 (:file "draw" :depends-on ("utils"))
+                 (:file "main" :depends-on ("utils" "draw")))))
   :description "A pretty bad vi like editor")

@@ -74,15 +74,16 @@
 (defun draw-blank-line ()
   (format t "~a" (make-string (term-width) :initial-element #\ )))
 
-(defun draw-command (cmd)
+(defun draw-command (screen)
   (move-to 1 (term-height))
   (draw-blank-line)
-  (move-to 1 (term-height))
-  (format t ":~a" (concatenate 'string (reverse cmd))))
+  (when (equal 'cmd (getf screen 'mode))
+    (move-to 1 (term-height))
+    (let ((cmd (getf screen 'cmd)))
+      (format t ":~a" (concatenate 'string (reverse cmd))))))
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
-  ; (jbrope:print-rope rbuf)
   (loop for chunk in (jbrope:chunks rbuf) do
     (map nil
          (lambda (x)
@@ -117,8 +118,7 @@
               (cursor-line (getf screen 'cur))
               (cursor-col (getf screen 'cur)))))
   (when (is-dirty screen 'cmd)
-    (when (equal 'cmd (getf screen 'mode))
-      (draw-command (getf screen 'cmd))))
+    (draw-command screen))
 
   (move-to (cursor-col (getf screen 'cur))
            (1+ (cursor-line (getf screen 'cur))))

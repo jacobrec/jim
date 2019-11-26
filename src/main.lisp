@@ -23,6 +23,12 @@
 (defun set-dirty (state place)
   (setf (getf state 'redraw) (cons place (getf state 'redraw))))
 
+(defun set-mode (state mode)
+  (set-dirty state 'status)
+  (set-dirty state 'cmd)
+  (setf (getf state 'mode) mode))
+
+
 (defun move-cursor (r c state)
   (move-to-cursor
     (+ r (cursor-line (getf state 'cur)))
@@ -37,7 +43,7 @@
   (let ((state `(tabs ("tmp.txt")
                  selected 0
                  mode normal
-                 buffer ,(buffer-new "tmp.txt")
+                 buffer ,(jbedit:open-buff "tmp.txt")
                  cur ,(make-cursor
                         :index 0
                         :line 1
@@ -58,31 +64,36 @@
      (cond
        ((char= #\: ch)
         (setf (getf state 'cmd) nil)
-        (setf (getf state 'mode) 'cmd))
-       ((char= #\i ch) (setf (getf state 'mode) 'insert))
+        (set-mode state 'cmd))
+       ((char= #\i ch) (set-mode state 'insert))
        ((char= #\h ch) (move-cursor 0 -1 state))
        ((char= #\j ch) (move-cursor 1 0 state))
        ((char= #\k ch) (move-cursor -1 0 state))
-       ((char= #\l ch) (move-cursor 0 1 state))))
+       ((char= #\l ch) (move-cursor 0 1 state))
+       ((char= #\0 ch) (move-cursor 0 -1000000 state))
+       ((char= #\$ ch) (move-cursor 0 1000000 state))))
     ((cmd)
      (cond
-       ((char= #\escape ch) (setf (getf state 'mode) 'normal))
+       ((char= #\escape ch) (set-mode state 'normal))
        ((char= #\rubout ch) (setf (getf state 'cmd)
                                   (cdr (getf state 'cmd)))
                             (set-dirty state 'cmd))
        ((char= #\return ch)
         (do-command state)
-        (setf (getf state 'mode) 'normal)
+        (set-mode state 'normal)
         (set-dirty state 'cmd))
        (t (setf (getf state 'cmd) (cons ch (getf state 'cmd)))
           (set-dirty state 'cmd))))
     ((insert)
      (cond
-       ((char= #\escape ch) (setf (getf state 'mode) 'normal))
+       ((char= #\escape ch) (set-mode state 'normal))
        ((char= #\rubout ch) (vector-pop (getf state 'buffer)))
-       (t (jbedit:insert (getf state 'buffer)
-                         (make-string 1 :initial-element ch)
-                         (cursor-index (getf state 'cur))))))))
+       (t (setf (getf state 'buffer)
+                (jbedit:insert (getf state 'buffer)
+                             (make-string 1 :initial-element ch)
+                             (cursor-index (getf state 'cur))))
+          (move-cursor 0 1 state)
+          (set-dirty state 'buffer))))))
 
 (defun do-command (state)
   (let ((cmd (string-trim '(#\space #\return #\linefeed)
