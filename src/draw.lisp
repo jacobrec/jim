@@ -92,10 +92,11 @@
                   (format t "~C~C" #\newline #\return))
                  (t (format t "~C" x))))
          chunk))
-  (loop for c across (format nil "~a" rbuf) do
-    (cond ((char= c #\newline)
-           (format t "~C~C" #\newline #\return))
-          (t (format t "~C" c)))))
+  (when nil
+    (loop for c across (format nil "~a" rbuf) do
+      (cond ((char= c #\newline)
+             (format t "~C~C" #\newline #\return))
+            (t (format t "~C" c))))))
 
 (defun is-dirty (screen place)
   (let ((res (find place
@@ -114,11 +115,11 @@
   (when (is-dirty screen :buffer)
     (draw-buffer (jbedit:buffer-head (getf screen :buffer))))
 
-  (when (is-dirty screen :status)
+  (when (or t (is-dirty screen :status))
     (draw-status
       (getf screen :mode)
-      (format nil "~a" (getf screen :cur))
-      ;(nth (getf screen :selected) (getf screen :tabs))
+      (format nil "[~a]"
+             (getf screen :lastchar))
       (format nil "R:~a C~a"
               (cursor-line (getf screen :cur))
               (cursor-col (getf screen :cur)))))

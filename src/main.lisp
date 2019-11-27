@@ -46,6 +46,7 @@
                         :line 1
                         :col 1)
                  :redraw (list :status :buffer :tabs :cmd)
+                 :lastchar #\space
                  :cmd nil)))
     (jim-io:draw-screen state)
     (loop while *running* do
@@ -56,6 +57,7 @@
   (stty '("sane")))
 
 (defun do-input (state ch)
+  (setf (getf state :lastchar) ch)
   (case (getf state :mode)
     ((:normal)
      (cond
@@ -69,6 +71,12 @@
        ((char= #\l ch) (move-cursor 0 1 state))
        ((char= #\0 ch) (move-cursor 0 -1000000 state))
        ((char= #\$ ch) (move-cursor 0 1000000 state))
+       ((char= #\x ch)
+        (setf (getf state :buffer)
+              (jbedit:del-from (getf state :buffer)
+                    (cursor-index (getf state :cur))
+                    (1+ (cursor-index (getf state :cur)))))
+        (set-dirty state :buffer))
        ((char= #\u ch) (setf (getf state :buffer)
                              (jbedit:undo (getf state :buffer)))
                        (set-dirty state :buffer))))
@@ -87,7 +95,20 @@
     ((:insert)
      (cond
        ((char= #\escape ch) (set-mode state :normal))
-       ((char= #\rubout ch) (vector-pop (getf state :buffer)))
+       ((char= #\return ch)
+        (setf (getf state :buffer)
+              (jbedit:insert (getf state :buffer)
+                             (make-string 1 :initial-element #\newline)
+                             (cursor-index (getf state :cur))))
+        (move-cursor 1 -10000000 state)
+        (set-dirty state :buffer))
+       ((char= #\rubout ch)
+        (setf (getf state :buffer)
+              (jbedit:del-from (getf state :buffer)
+                             (1- (cursor-index (getf state :cur)))
+                             (cursor-index (getf state :cur))))
+        (move-cursor 0 -1 state)
+        (set-dirty state :buffer))
        (t (setf (getf state :buffer)
                 (jbedit:insert (getf state :buffer)
                                (make-string 1 :initial-element ch)
