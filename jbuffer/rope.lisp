@@ -94,7 +94,7 @@
      (if (< i (length (leaf-lvec rope)))
        (aref (leaf-lvec rope) i)
        (rope-len rope)))
-    ((< i (rope-nnl rope)) (line-ref (rope-l rope) i))
+    ((<= i (rope-nnl rope)) (line-ref (rope-l rope) i))
     (t (+ (rope-nl rope) (line-ref (rope-r rope) (- i (rope-nnl rope)))))))
 
 
