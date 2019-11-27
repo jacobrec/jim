@@ -1,4 +1,3 @@
-
 (defpackage :jbuffer-asd
   (:use :cl :asdf))
 
@@ -13,13 +12,15 @@
                 ((:file "istring")
                  (:file "rope")
                  (:file "editor"))))
-  :in-order-to ((test-op (test-op jbuffer-test)))
+  :in-order-to ((test-op (test-op :jbuffer-test)))
   :description "jim's text editor buffer")
 
 (defsystem jbuffer-test
   :defsystem-depends-on (:prove-asdf)
   :depends-on (:jbuffer :prove)
-  :components ((:test-file "rope_test"))
+  :components ((:module "jbuffer"
+                        :components
+                        ((:test-file "rope_test"))))
   :perform (test-op :after (op c)
                     (funcall (intern #.(string :run) :prove) c)))
 

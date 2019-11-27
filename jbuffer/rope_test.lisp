@@ -2,7 +2,6 @@
   (:use :cl :prove))
 (in-package :rope-test)
 
-(plan 2)
+(plan 1)
 (is 4 4)
-(is 4 5)
 (finalize)
