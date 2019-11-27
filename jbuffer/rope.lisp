@@ -36,7 +36,7 @@
     ((= i (- (length str) 1)) nil)
     ((= i -1) (cons 0 (find-lines-list str (+ i 1))))
     ((equal (elt str i) #\newline)
-       (cons (+ i 1) (find-lines-list str (+ i 1))))
+     (cons (+ i 1) (find-lines-list str (+ i 1))))
     (t (find-lines-list str (+ i 1)))))
 
 
@@ -170,7 +170,7 @@
   "returns a rope with str inserted into rope at i"
   (let ((ropes (split rope i)))
       (concat (first ropes)
-                 (concat str (second ropes)))))
+              (concat str (second ropes)))))
 
 
 (defun del-from (rope start end)
