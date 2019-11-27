@@ -68,7 +68,10 @@
        ((char= #\k ch) (move-cursor -1 0 state))
        ((char= #\l ch) (move-cursor 0 1 state))
        ((char= #\0 ch) (move-cursor 0 -1000000 state))
-       ((char= #\$ ch) (move-cursor 0 1000000 state))))
+       ((char= #\$ ch) (move-cursor 0 1000000 state))
+       ((char= #\u ch) (setf (getf state :buffer)
+                             (jbedit:undo (getf state :buffer)))
+                       (set-dirty state :buffer))))
     ((:cmd)
      (cond
        ((char= #\escape ch) (set-mode state :normal))

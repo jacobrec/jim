@@ -36,7 +36,7 @@
     ((= i (- (length str) 1)) nil)
     ((= i -1) (cons 0 (find-lines-list str (+ i 1))))
     ((equal (elt str i) #\newline)
-       (cons (+ i 1) (find-lines-list str (+ i 1))))
+     (cons (+ i 1) (find-lines-list str (+ i 1))))
     (t (find-lines-list str (+ i 1)))))
 
 
@@ -85,7 +85,7 @@
        (aref (leaf-lvec rope) i)
        (rope-len rope)))
     ((< i (rope-nnl rope)) (line-ref (rope-l rope) i))
-    (t (line-ref (rope-r rope) (- i (rope-nnl rope))))))
+    (t (+ (rope-nl rope) (line-ref (rope-r rope) (- i (rope-nnl rope)))))))
 
 
 (defun split (rope i)
@@ -110,7 +110,7 @@
         :lvec (subseq (leaf-lvec leaf) 0 nl-split))
       (make-leaf
         :str (subseq (leaf-str leaf) i)
-        :lvec (vsub (subseq (leaf-lvec leaf) nl-split) i)))))
+        :lvec (concatenate 'vector #(0) (vsub (subseq (leaf-lvec leaf) nl-split) i))))))
 
 
 (defun vsub (vec i)
@@ -121,14 +121,16 @@
 
 
 (defun bsearch (seq i &optional (lo 0) hi)
-  (if (null hi) (setf hi (length seq)))
+  (let ((len (length seq)))
+    (if (null hi) (setf hi len))
 
-  (let ((mid (+ lo (floor (- hi lo) 2))))
-    (cond
-      ((> lo hi) lo)
-      ((= (elt seq mid) i) mid)
-      ((> (elt seq mid) i) (bsearch seq i lo (- mid 1)))
-      ((< (elt seq mid) i) (bsearch seq i (+ mid 1) hi)))))
+    (let ((mid (+ lo (floor (- hi lo) 2))))
+      (cond
+        ((> lo hi) lo)
+        ((>= mid len) (bsearch seq i lo (- mid 1)))
+        ((= (elt seq mid) i) mid)
+        ((> (elt seq mid) i) (bsearch seq i lo (- mid 1)))
+        ((< (elt seq mid) i) (bsearch seq i (+ mid 1) hi))))))
 
 
 (defun rope-len (rope)
@@ -143,7 +145,7 @@
 (defun rope-lines (rope)
   "gets the number of lines in a rope"
   (if (leaf-p rope)
-    (length (leaf-lvec rope))
+    (1- (length (leaf-lvec rope)))
     (+
       (rope-nnl rope)
       (rope-lines (rope-r rope)))))
@@ -170,7 +172,7 @@
   "returns a rope with str inserted into rope at i"
   (let ((ropes (split rope i)))
       (concat (first ropes)
-                 (concat str (second ropes)))))
+              (concat str (second ropes)))))
 
 
 (defun del-from (rope start end)

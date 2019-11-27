@@ -81,13 +81,21 @@
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
+  (loop for i from 0 to 20 do
+    (draw-blank-line)
+    (format t "~c~c" #\newline #\return))
+  (move-to 1 2)
   (loop for chunk in (jbrope:chunks rbuf) do
     (map nil
          (lambda (x)
            (cond ((char= x #\newline)
                   (format t "~C~C" #\newline #\return))
                  (t (format t "~C" x))))
-         chunk)))
+         chunk))
+  (loop for c across (format nil "~a" rbuf) do
+    (cond ((char= c #\newline)
+           (format t "~C~C" #\newline #\return))
+          (t (format t "~C" c)))))
 
 (defun is-dirty (screen place)
   (let ((res (find place
