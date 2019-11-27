@@ -13,4 +13,7 @@
                 ((:file "utils")
                  (:file "draw" :depends-on ("utils"))
                  (:file "main" :depends-on ("utils" "draw")))))
-  :description "A pretty bad vi like editor")
+  :description "A pretty bad vi like editor"
+  :build-operation program-op
+  :build-pathname "jim"
+  :entry-point "jim-app:run-app")
