@@ -7,6 +7,7 @@
   (:use :cl)
   (:export
     #:str-to-rope
+    #:rope-to-string
     #:print-rope
     #:coord-to-idx
     #:rope-ref
@@ -51,6 +52,15 @@
   (make-leaf
     :str (jbstring:make-istring str)
     :lvec (find-lines str)))
+
+(defun rope-to-string (rope)
+  (concatenate 'string (rope-to-string-internal rope)))
+
+(defun rope-to-string-internal (rope)
+  (if (leaf-p rope)
+      (leaf-str rope)
+      (format nil "~a~a" (rope-to-string-internal (rope-l rope))
+                         (rope-to-string-internal (rope-r rope)))))
 
 
 (defun print-rope (rope)
