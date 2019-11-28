@@ -1,5 +1,4 @@
-(defpackage :jbindings-keys
-  (:nicknames :jkeys)
+(defpackage :jim.bindings.keys
   (:use :cl)
   (:export
     kseq
@@ -11,7 +10,7 @@
     <C-m> <C-n> <C-o> <C-p> <C-q> <C-r> <C-s> <C-t> <C-u> <C-v> <C-w> <C-x>
     <C-y> <C-z>))
 
-(in-package :jbindings-keys)
+(in-package :jim.bindings.keys)
 
 
 (defun kseq (&rest args)
