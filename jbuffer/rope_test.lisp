@@ -110,6 +110,13 @@
   (idx-coord-test rope7 3 3 0)
   (idx-coord-test rope7 4 3 1))
 
+(let* ((s (format nil "hello~%"))
+       (rope (jbrope:str-to-rope s))
+       (rope2 (jbrope:insert rope (jbrope:str-to-rope (format nil "~%")) 0))
+       (rope3 (jbrope:insert rope2 (jbrope:str-to-rope (format nil "~%")) 0)))
+  (idx-coord-test rope3 0 0 0)
+  (idx-coord-test rope3 1 1 0)
+  (idx-coord-test rope3 2 2 0))
 
 
 

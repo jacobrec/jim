@@ -125,8 +125,8 @@
   (when (is-dirty screen :cmd)
     (draw-command screen))
 
-  (move-to (cursor-col (getf screen :cur))
-           (1+ (cursor-line (getf screen :cur))))
+  (move-to (+ 1 (cursor-col (getf screen :cur)))
+           (+ 2 (cursor-line (getf screen :cur))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
 

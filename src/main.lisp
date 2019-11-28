@@ -7,15 +7,15 @@
 
 (defun move-to-cursor (r c state &optional (propegate t))
   (let ((cur (getf state :cur)))
-    (setf (cursor-line cur) (min (1- (term-height)) (max 1 r)))
-    (setf (cursor-col cur) (min (term-width) (max 1 c)))
+    (setf (cursor-line cur) (min (1- (term-height)) (max 0 r)))
+    (setf (cursor-col cur) (min (1- (term-width)) (max 0 c)))
     (set-dirty state :status)
     (when propegate
       (setf (cursor-index cur)
             (jbrope:coord-to-idx
              (jbedit:buffer-head (getf state :buffer))
-             (1- (cursor-line cur))
-             (1- (cursor-col cur))))
+             (cursor-line cur)
+             (cursor-col cur)))
       (refresh-cursor state))))
 
 (defun refresh-cursor (state)
@@ -23,7 +23,7 @@
                (jbedit:buffer-head
                  (getf state :buffer))
                (cursor-index (getf state :cur)))))
-    (move-to-cursor (1+ (car loc)) (1+ (cdr loc)) state nil)))
+    (move-to-cursor (car loc) (cdr loc) state nil)))
 
 (defun slide-cursor (state amount)
   (incf (cursor-index (getf state :cur)) amount)
@@ -57,8 +57,8 @@
                  :buffer (jbedit:open-buff "tmp.txt")
                  :cur (jim-utils:make-cursor
                         :index 0
-                        :line 1
-                        :col 1)
+                        :line 0
+                        :col 0)
                  :redraw (list :status :buffer :tabs :cmd)
                  :lastchar #\space
                  :cmd nil)))
