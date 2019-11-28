@@ -126,6 +126,8 @@
   (idx-coord-test rope4 0 0 0)
   (idx-coord-test rope4 1 0 1)
   (idx-coord-test rope4 2 0 2)
+
+  (diag (format nil "~a" rope4))
   (idx-coord-test rope4 6 1 0)
   (idx-coord-test rope4 7 2 0))
 
