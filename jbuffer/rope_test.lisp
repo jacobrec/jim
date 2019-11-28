@@ -72,6 +72,46 @@
   (is (jbrope:idx-to-coord rope 8) '(1 . 2))
   (is (jbrope:idx-to-coord rope 10) '(1 . 4)))
 
+(defun idx-idx-test (rope idx)
+  (is
+    (let ((loc (jbrope:idx-to-coord rope idx)))
+      (jbrope:coord-to-idx rope (car loc) (cdr loc)))
+    idx))
+(defun idx-coord-test (rope idx line col)
+  (is (jbrope:idx-to-coord rope idx) (cons line col))
+  (is (jbrope:coord-to-idx rope line col) idx))
+
+(let* ((s (format nil "12345~%~%~%67890")) (rope (jbrope:str-to-rope s)))
+  (loop for i from 0 to (1- (length s)) do
+    (idx-idx-test rope i)))
+(let* ((s (format nil "hello~%world~%goodbye"))
+       (rope (jbrope:str-to-rope s))
+       (rope2 (jbrope:insert rope (jbrope:str-to-rope "1") 3))
+       (rope3 (jbrope:insert rope2 (jbrope:str-to-rope "2") 10))
+       (rope4 (jbrope:insert rope3 (jbrope:str-to-rope "3") 16))
+       (rope5 (jbrope:insert rope4 (jbrope:str-to-rope (format nil "~%")) 0))
+       (rope6 (jbrope:insert rope5 (jbrope:str-to-rope (format nil "~%")) 0))
+       (rope7 (jbrope:insert rope6 (jbrope:str-to-rope (format nil "~%")) 0)))
+  (is (jbrope:rope-to-string rope7)
+      (format nil "~%~%~%hel1lo~%wor2ld~%go3odbye") :test #'string=)
+  (loop for i from 0 to (1- (rope-len rope4)) do
+    (idx-idx-test rope4 i))
+  (loop for i from 0 to (1- (rope-len rope7)) do
+    (idx-idx-test rope7 i))
+
+  (idx-coord-test rope4 7 1 0)
+  (idx-coord-test rope4 10 1 3)
+  (idx-coord-test rope4 14 2 0)
+  (idx-coord-test rope4 15 2 1)
+
+  (idx-coord-test rope7 0 0 0)
+  (idx-coord-test rope7 1 1 0)
+  (idx-coord-test rope7 2 2 0)
+  (idx-coord-test rope7 3 3 0)
+  (idx-coord-test rope7 4 3 1))
+
+
+
 
 
 (finalize)
