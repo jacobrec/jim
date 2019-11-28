@@ -16,6 +16,7 @@
            (1- (cursor-line cur))
            (1- (cursor-col cur))))))
 
+
 (defun set-dirty (state place)
   (setf (getf state :redraw) (cons place (getf state :redraw))))
 
