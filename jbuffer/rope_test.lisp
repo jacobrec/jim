@@ -125,7 +125,7 @@
        (rope4 (jbrope:insert rope3 (jbrope:str-to-rope (format nil "~%")) 7)))
   (idx-coord-test rope4 0 0 0)
   (idx-coord-test rope4 1 0 1)
-  (idx-coord-test rope4 2 0 1)
+  (idx-coord-test rope4 2 0 2)
   (idx-coord-test rope4 6 1 0)
   (idx-coord-test rope4 7 2 0))
 
