@@ -4,3 +4,4 @@
 
 (in-package :jim.bindings)
 (reexport-from :jim.bindings.keys)
+(reexport-from :jim.bindings.trie)

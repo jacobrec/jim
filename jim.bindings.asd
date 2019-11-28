@@ -11,5 +11,6 @@
   :components ((:module "bindings"
                 :components
                 ((:file "keys")
+                 (:file "trie")
                  (:file "package"))))
   :description "jim's keybinding system")
