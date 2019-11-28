@@ -5,16 +5,29 @@
 
 (defvar *running* t)
 
-(defun move-to-cursor (r c state)
+(defun move-to-cursor (r c state &optional (propegate t))
   (let ((cur (getf state :cur)))
     (setf (cursor-line cur) (min (1- (term-height)) (max 1 r)))
     (setf (cursor-col cur) (min (term-width) (max 1 c)))
     (set-dirty state :status)
-    (setf (cursor-index cur)
-          (jbrope:coord-to-idx
-           (jbedit:buffer-head (getf state :buffer))
-           (1- (cursor-line cur))
-           (1- (cursor-col cur))))))
+    (when propegate
+      (setf (cursor-index cur)
+            (jbrope:coord-to-idx
+             (jbedit:buffer-head (getf state :buffer))
+             (1- (cursor-line cur))
+             (1- (cursor-col cur))))
+      (refresh-cursor state))))
+
+(defun refresh-cursor (state)
+  (let ((loc (jbrope:idx-to-coord
+               (jbedit:buffer-head
+                 (getf state :buffer))
+               (cursor-index (getf state :cur)))))
+    (move-to-cursor (1+ (car loc)) (1+ (cdr loc)) state nil)))
+
+(defun slide-cursor (state amount)
+  (incf (cursor-index (getf state :cur)) amount)
+  (refresh-cursor state))
 
 
 (defun set-dirty (state place)
@@ -101,14 +114,14 @@
               (jbedit:insert (getf state :buffer)
                              (make-string 1 :initial-element #\newline)
                              (cursor-index (getf state :cur))))
-        (move-cursor 1 -10000000 state)
+        (slide-cursor state 1)
         (set-dirty state :buffer))
        ((char= #\rubout ch)
         (setf (getf state :buffer)
               (jbedit:del-from (getf state :buffer)
                              (1- (cursor-index (getf state :cur)))
                              (cursor-index (getf state :cur))))
-        (move-cursor 0 -1 state)
+        (slide-cursor state -1)
         (set-dirty state :buffer))
        (t (setf (getf state :buffer)
                 (jbedit:insert (getf state :buffer)

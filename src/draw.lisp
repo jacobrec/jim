@@ -118,8 +118,7 @@
   (when (or t (is-dirty screen :status))
     (draw-status
       (getf screen :mode)
-      (format nil "[~a]"
-             (getf screen :lastchar))
+      (format nil "~a" (getf screen :cur))
       (format nil "R:~a C~a"
               (cursor-line (getf screen :cur))
               (cursor-col (getf screen :cur)))))
