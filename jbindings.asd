@@ -9,5 +9,5 @@
   :license "LGPLv3"
   :components ((:module "jbindings"
                 :components
-                ()))
+                ((:file "keys"))))
   :description "jim's keybinding system")
