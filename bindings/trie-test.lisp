@@ -33,4 +33,7 @@
   (is (trie-ref trie '(#\a #\a #\d)) nil)
   (is (trie-ref trie '()) nil))
 
+(let ((trie (make-trie)))
+  (is (trie-inc trie '(#\a)) nil))
+
 (finalize)

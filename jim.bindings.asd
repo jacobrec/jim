@@ -12,6 +12,7 @@
                 :components
                 ((:file "keys")
                  (:file "trie")
+                 (:file "bindings")
                  (:file "package"))))
   :in-order-to ((test-op (test-op :jim.bindings/test)))
   :description "jim's keybinding system")
@@ -22,6 +23,7 @@
   :components ((:module "bindings"
                 :components
                 ((:test-file "keys-test")
-                 (:test-file "trie-test"))))
+                 (:test-file "trie-test")
+                 (:test-file "bindings-test"))))
   :perform (test-op :after (op c)
                     (funcall (intern #.(string :run) :prove) c)))

@@ -34,10 +34,12 @@
 
 (defun trie-inc (trie ch)
   "returs either a terminal value or a trie one level down from the previous"
-  (let ((node (elt (trie-vec trie) (char-code ch))))
-    (if (vectorp node)
-      (make-trie :vec node)
-      node)))
+  (if (vectorp (trie-vec trie))
+    (let ((node (elt (trie-vec trie) (char-code ch))))
+      (if (vectorp node)
+        (make-trie :vec node)
+        node))
+    (trie-vec trie)))
 
 (defun trie-ref (trie chars)
   "returns the element contained in the trie for chars"
