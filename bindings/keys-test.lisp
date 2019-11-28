@@ -13,5 +13,4 @@
 (is (kseq <Up> "axy") '(#\esc #\[ #\A #\a #\x #\y))
 (is (kseq '("a" "b") '("c" "d")) '(#\a #\b #\c #\d))
 
-
 (finalize)

@@ -21,6 +21,7 @@
   :depends-on (:jim.bindings :prove)
   :components ((:module "bindings"
                 :components
-                ((:test-file "keys-test"))))
+                ((:test-file "keys-test")
+                 (:test-file "trie-test"))))
   :perform (test-op :after (op c)
                     (funcall (intern #.(string :run) :prove) c)))

@@ -1,6 +1,6 @@
 (ql:quickload :prove)
 
-(prove:run :jbuffer)
+(asdf:load-system :jbuffer)
 (prove:run :jbuffer-test)
 
 (asdf:load-system :jim.bindings)
