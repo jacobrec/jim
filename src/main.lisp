@@ -5,16 +5,30 @@
 
 (defvar *running* t)
 
-(defun move-to-cursor (r c state)
+(defun move-to-cursor (r c state &optional (propegate t))
   (let ((cur (getf state :cur)))
-    (setf (cursor-line cur) (min (1- (term-height)) (max 1 r)))
-    (setf (cursor-col cur) (min (term-width) (max 1 c)))
+    (setf (cursor-line cur) (min (1- (term-height)) (max 0 r)))
+    (setf (cursor-col cur) (min (1- (term-width)) (max 0 c)))
     (set-dirty state :status)
-    (setf (cursor-index cur)
-          (jbrope:coord-to-idx
-           (jbedit:buffer-head (getf state :buffer))
-           (1- (cursor-line cur))
-           (1- (cursor-col cur))))))
+    (when propegate
+      (setf (cursor-index cur)
+            (jbrope:coord-to-idx
+             (jbedit:buffer-head (getf state :buffer))
+             (cursor-line cur)
+             (cursor-col cur)))
+      (refresh-cursor state))))
+
+(defun refresh-cursor (state)
+  (let ((loc (jbrope:idx-to-coord
+               (jbedit:buffer-head
+                 (getf state :buffer))
+               (cursor-index (getf state :cur)))))
+    (move-to-cursor (car loc) (cdr loc) state nil)))
+
+(defun slide-cursor (state amount)
+  (incf (cursor-index (getf state :cur)) amount)
+  (refresh-cursor state))
+
 
 (defun set-dirty (state place)
   (setf (getf state :redraw) (cons place (getf state :redraw))))
@@ -43,8 +57,8 @@
                  :buffer (jbedit:open-buff "tmp.txt")
                  :cur (jim-utils:make-cursor
                         :index 0
-                        :line 1
-                        :col 1)
+                        :line 0
+                        :col 0)
                  :redraw (list :status :buffer :tabs :cmd)
                  :lastchar #\space
                  :cmd nil)))
@@ -95,26 +109,24 @@
     ((:insert)
      (cond
        ((char= #\escape ch) (set-mode state :normal))
-       ((char= #\return ch)
-        (setf (getf state :buffer)
-              (jbedit:insert (getf state :buffer)
-                             (make-string 1 :initial-element #\newline)
-                             (cursor-index (getf state :cur))))
-        (move-cursor 1 -10000000 state)
-        (set-dirty state :buffer))
        ((char= #\rubout ch)
         (setf (getf state :buffer)
               (jbedit:del-from (getf state :buffer)
                              (1- (cursor-index (getf state :cur)))
                              (cursor-index (getf state :cur))))
-        (move-cursor 0 -1 state)
+        (slide-cursor state -1)
         (set-dirty state :buffer))
-       (t (setf (getf state :buffer)
-                (jbedit:insert (getf state :buffer)
-                               (make-string 1 :initial-element ch)
-                               (cursor-index (getf state :cur))))
-          (move-cursor 0 1 state)
-          (set-dirty state :buffer))))))
+       ((char= #\return ch)
+        (add-char state #\newline))
+       (t (add-char state ch))))))
+
+(defun add-char (state ch)
+  (setf (getf state :buffer)
+        (jbedit:insert (getf state :buffer)
+                       (make-string 1 :initial-element ch)
+                       (cursor-index (getf state :cur))))
+  (slide-cursor state 1)
+  (set-dirty state :buffer))
 
 (defun do-command (state)
   (let ((cmd (string-trim '(#\space #\return #\linefeed)

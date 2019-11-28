@@ -118,16 +118,15 @@
   (when (or t (is-dirty screen :status))
     (draw-status
       (getf screen :mode)
-      (format nil "[~a]"
-             (getf screen :lastchar))
+      (format nil "~a" (getf screen :cur))
       (format nil "R:~a C~a"
               (cursor-line (getf screen :cur))
               (cursor-col (getf screen :cur)))))
   (when (is-dirty screen :cmd)
     (draw-command screen))
 
-  (move-to (cursor-col (getf screen :cur))
-           (1+ (cursor-line (getf screen :cur))))
+  (move-to (+ 1 (cursor-col (getf screen :cur)))
+           (+ 2 (cursor-line (getf screen :cur))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
 

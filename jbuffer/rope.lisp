@@ -10,6 +10,7 @@
     #:rope-to-string
     #:print-rope
     #:coord-to-idx
+    #:idx-to-coord
     #:rope-ref
     #:line-ref
     #:split
@@ -77,6 +78,24 @@
   (min
     (+ (line-ref rope lines) cols)
     (1- (line-ref rope (+ lines 1)))))
+
+(defun idx-to-coord (rope idx)
+  "turns a linear index into a lines/cols one"
+  (let ((line (idx-to-line rope idx)))
+    (cons line (idx-to-col rope idx line))))
+
+(defun idx-to-col (rope idx line)
+  (- idx (line-ref rope line)))
+
+(defun idx-to-line (rope idx)
+  "turns a linear index into a line number"
+  (cond
+    ((leaf-p rope)
+     (let ((bidx (1- (bsearch (leaf-lvec rope) (1+ idx)))))
+        bidx))
+    ((< idx (rope-nl rope)) (idx-to-line (rope-l rope) idx))
+    (t (let ((r (idx-to-line (rope-r rope) (- idx (rope-nl rope)))))
+          (+ (rope-nnl rope) r)))))
 
 
 (defun rope-ref (rope i)
