@@ -40,7 +40,7 @@
       (format nil "~a~a" (rope-to-string-internal (rope-left rope))
                          (rope-to-string-internal (rope-right rope)))))
 
-;;;;; TODO: write coord-to-idx and idx-to-coord
+;;;;; TODO: This is slow, maybe remove coord-to-idx and idx-to-coord
 (defun coord-to-idx (rope line col)
   (let ((r 0) (c 0) (idx 0) (found nil))
     (iterate rope (lambda (ch)
