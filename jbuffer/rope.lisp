@@ -23,131 +23,61 @@
 
 (in-package :jbuffer-rope)
 
-
-(defstruct leaf
-  str   ; the sequence the leaf is based on
-  lvec) ; the vector of newlines
-
-
 (defun find-lines (str)
   (coerce (find-lines-list str) 'vector))
 
 
-(defun find-lines-list (str &optional (i -1))
+(defun find-lines-list (str &optional (i 0))
   (cond
     ((= i (- (length str) 1)) nil)
-    ((= i -1) (cons 0 (find-lines-list str (+ i 1))))
     ((equal (elt str i) #\newline)
      (cons (+ i 1) (find-lines-list str (+ i 1))))
     (t (find-lines-list str (+ i 1)))))
 
 
 (defstruct rope
-  nl   ; length of left branch
-  nnl  ; number of newlines in left branch
-  l    ; left branch
-  r)   ; right branch
+  l-len   ; length of left branch
+  left    ; left branch
+  right)   ; right branch
 
 
 (defun str-to-rope (str)
-  (make-leaf
-    :str (jbstring:make-istring str)
-    :lvec (find-lines str)))
+  (jbstring:make-istring str))
 
 (defun rope-to-string (rope)
   (concatenate 'string (rope-to-string-internal rope)))
 
 (defun rope-to-string-internal (rope)
-  (if (leaf-p rope)
-      (leaf-str rope)
-      (format nil "~a~a" (rope-to-string-internal (rope-l rope))
-                         (rope-to-string-internal (rope-r rope)))))
+  (if (jbstring:istring-p rope) rope
+      (format nil "~a~a" (rope-to-string-internal (rope-left rope))
+                         (rope-to-string-internal (rope-right rope)))))
 
 
-(defun print-rope (rope)
-  "prints a rope via princ"
-  (if (leaf-p rope)
-    (princ (leaf-str rope))
-    (progn
-      (print-rope (rope-l rope))
-      (print-rope (rope-r rope)))))
-
-
-(defun coord-to-idx (rope lines &optional (cols 0))
-  "turns a lines/cols index into a linear one"
-  (min
-    (+ (line-ref rope lines) cols)
-    (1- (line-ref rope (+ lines 1)))))
-
+;;;;; TODO: write coord-to-idx and idx-to-coord
+(defun coord-to-idx (rope line col)
+  0)
 (defun idx-to-coord (rope idx)
-  "turns a linear index into a lines/cols one"
-  (let ((line (idx-to-line rope idx)))
-    (cons line (idx-to-col rope idx line))))
-
-(defun idx-to-col (rope idx line)
-  (- idx (line-ref rope line)))
-
-(defun idx-to-line (rope idx)
-  "turns a linear index into a line number"
-  (cond
-    ((leaf-p rope)
-     (let ((bidx (1- (bsearch (leaf-lvec rope) (1+ idx)))))
-        bidx))
-    ((< idx (rope-nl rope)) (idx-to-line (rope-l rope) idx))
-    (t (let ((r (idx-to-line (rope-r rope) (- idx (rope-nl rope)))))
-          (+ (rope-nnl rope) r)))))
+  '(0 . 0))
 
 
 (defun rope-ref (rope i)
   "gets the char in the rope at index i"
   (cond
-    ((leaf-p rope) (aref (leaf-str rope) i))
-    ((< i (rope-nl rope)) (rope-ref (rope-l rope) i))
-    (t (rope-ref (rope-r rope) (- i (rope-nl rope))))))
-
-
-(defun line-ref (rope i)
-  "gets the index of the line at i"
-  (cond
-    ((leaf-p rope)
-     (if (< i (length (leaf-lvec rope)))
-       (aref (leaf-lvec rope) i)
-       (rope-len rope)))
-    ((<= i (rope-nnl rope)) (line-ref (rope-l rope) i))
-    (t (+ (rope-nl rope) (line-ref (rope-r rope) (- i (rope-nnl rope)))))))
-
+    ((jbstring:istring-p rope) (aref rope i))
+    ((< i (rope-l-len rope)) (rope-ref (rope-left rope) i))
+    (t (rope-ref (rope-right rope) (- i (rope-l-len rope))))))
 
 (defun split (rope i)
   "splits a rope at i into a list of two ropes"
   (cond
-    ((leaf-p rope) (split-leaf rope i))
-    ((= i (rope-nl rope)) (list (rope-l rope) (rope-r rope)))
-    ((< i (rope-nl rope))
-     (let ((left (split (rope-l rope) i)))
-       (list (first left) (concat (second left) (rope-r rope)))))
-    ((> i (rope-nl rope))
-     (let ((right (split (rope-r rope) (- i (rope-nl rope)))))
-       (list (concat (rope-l rope) (first right)) (second right))))))
-
-
-(defun split-leaf (leaf i)
-  "splits a string in to two strings at i"
-  (let ((nl-split (bsearch (leaf-lvec leaf) i)))
-    (list
-      (make-leaf
-        :str (subseq (leaf-str leaf) 0 i)
-        :lvec (subseq (leaf-lvec leaf) 0 nl-split))
-      (make-leaf
-        :str (subseq (leaf-str leaf) i)
-        :lvec (concatenate 'vector #(0) (vsub (subseq (leaf-lvec leaf) nl-split) i))))))
-
-
-(defun vsub (vec i)
-  (map 'vector
-    (lambda (e)
-      (- e i))
-    vec))
-
+    ((jbstring:istring-p rope) (list (subseq rope 0 i) (subseq rope i)))
+    ((= i (rope-l-len rope)) (list (rope-left rope) (rope-right rope)))
+    ((< i (rope-l-len rope))
+     (let ((left (split (rope-left rope) i)))
+       (list (first left) (concat (second left) (rope-right rope)))))
+    ((> i (rope-l-len rope))
+     (let ((right (split (rope-right rope) (- i (rope-l-len rope)))))
+       (list (concat (rope-left rope) (first right)) (second right))))))
 
 (defun bsearch (seq i &optional (lo 0) hi)
   (let ((len (length seq)))
@@ -161,47 +91,34 @@
         ((> (elt seq mid) i) (bsearch seq i lo (- mid 1)))
         ((< (elt seq mid) i) (bsearch seq i (+ mid 1) hi))))))
 
-
 (defun rope-len (rope)
   "gets the length of the rope"
-  (if (leaf-p rope)
-    (length (leaf-str rope))
-    (+
-      (rope-nl rope)
-      (rope-len (rope-r rope)))))
-
-
-(defun rope-lines (rope)
-  "gets the number of lines in a rope"
-  (if (leaf-p rope)
-    (1- (length (leaf-lvec rope)))
-    (+
-      (rope-nnl rope)
-      (rope-lines (rope-r rope)))))
-
+  (if (jbstring:istring-p rope)
+    (length rope)
+    (+ (rope-l-len rope)
+       (rope-len (rope-right rope)))))
 
 (defun empty-leaf-p (rope)
-  (and
-    (leaf-p rope)
-    (= (length (leaf-str rope)) 0)))
+  (and (jbstring:istring-p rope)
+       (= (length rope) 0)))
 
 
-(defun concat (rope1 rope2)
+(defun concat (rope1 &rest ropes)
   "concatenates two ropes"
   (cond
-    ((empty-leaf-p rope1) rope2)
-    ((empty-leaf-p rope2) rope1)
-    (t (make-rope :nl (rope-len rope1)
-                  :nnl (rope-lines rope1)
-                  :l rope1
-                  :r rope2))))
+    ((not ropes) rope1)
+    ((empty-leaf-p rope1) (apply #'concat ropes))
+    (t (apply #'concat
+              (make-rope :l-len (rope-len rope1)
+                        :left rope1
+                        :right (car ropes))
+              (cdr ropes)))))
 
 
 (defun insert (rope str i)
   "returns a rope with str inserted into rope at i"
   (let ((ropes (split rope i)))
-      (concat (first ropes)
-              (concat str (second ropes)))))
+    (concat (first ropes) str (second ropes))))
 
 
 (defun del-from (rope start end)
@@ -217,4 +134,4 @@
     (append
       (chunks (rope-l rope))
       (chunks (rope-r rope)))
-    (list (leaf-str rope))))
+    (list rope)))

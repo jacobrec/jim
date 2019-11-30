@@ -2,9 +2,26 @@
   (:use :cl :prove :jbrope))
 (in-package :rope-test)
 
+
 (plan nil)
 
+;; Test rope building
+(let* ((s (format nil "hello"))
+       (rope (jbrope:str-to-rope s)))
+  (is (jbrope:rope-to-string rope)
+      (format nil "hello") :test #'string=)
+  (is (format nil "~a" (car (jbrope::split rope 3)))
+      (format nil "~a" (subseq rope 0 3)) :test #'equal)
 
+  (is (jbrope::empty-leaf-p (jbrope:str-to-rope "")) t)
+  (is (jbrope::empty-leaf-p (jbrope:str-to-rope "a")) nil)
+  (is (jbrope::empty-leaf-p (jbrope:str-to-rope "ah")) nil)
+
+  (is (format nil "~a" (cadr (jbrope::split rope 3)))
+      (format nil "~a" (subseq rope 3)) :test #'equal)
+
+  (is (jbrope:rope-to-string (jbrope:insert rope (jbrope:str-to-rope "i") 3))
+      "helilo" :test #'string=))
 (let* ((s (format nil "Hello World")) (rope (jbrope:str-to-rope s)))
   (is (jbrope:rope-to-string rope) s :test #'string=))
 
@@ -61,7 +78,10 @@
   (is (jbrope::bsearch test 12) 6)
   (is (jbrope::bsearch test 13) 6)
   (is (jbrope::bsearch test 14) 6)
-  (is (jbrope::bsearch test 10000) 8))
+  (is (jbrope::bsearch test 10000) 8)
+  (is (jbrope::bsearch #() 100) 0)
+  (is (jbrope::bsearch #() 10) 0)
+  (is (jbrope::bsearch #() 0) 0))
 
 (let ((rope (jbrope:str-to-rope (format nil "12345~%67890"))))
   (is (jbrope:idx-to-coord rope 0) '(0 . 0))
@@ -127,12 +147,13 @@
   (idx-coord-test rope4 1 0 1)
   (idx-coord-test rope4 2 0 2)
 
-  (diag (format nil "~a" rope4))
+  (diag (jbrope:rope-to-string rope4))
   (idx-coord-test rope4 6 1 0)
   (idx-coord-test rope4 7 2 0))
 
 
-
+(is (jbrope::find-lines-list (format nil "a~%")) '(1))
+(is (jbrope::find-lines-list (format nil "~%~%~%")) '(0 1 2))
 
 
 (finalize)

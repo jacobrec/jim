@@ -6,7 +6,8 @@
   (:nicknames jbstring)
   (:use :cl)
   (:export
-    #:make-istring))
+    #:make-istring
+    #:istring-p))
 
 (in-package :jbuffer-istring)
 
@@ -25,6 +26,12 @@
                  :base  str
                  :start 0
                  :end   (length str)))
+
+(defmethod istring-p ((x istring))
+  t)
+(defmethod istring-p ((x t))
+  nil)
+
 
 
 (defmethod sb-sequence:elt ((seq istring) index)
