@@ -52,7 +52,6 @@
       (format nil "~a~a" (rope-to-string-internal (rope-left rope))
                          (rope-to-string-internal (rope-right rope)))))
 
-
 ;;;;; TODO: write coord-to-idx and idx-to-coord
 (defun coord-to-idx (rope line col)
   0)
@@ -135,3 +134,31 @@
       (chunks (rope-l rope))
       (chunks (rope-r rope)))
     (list rope)))
+
+(defun iterate (rope fn &optional (start 0) (end -1))
+  (if (jbstring:istring-p rope)
+      (let ((len (1- (length rope))))
+        (loop for i from start to (if (= -1 end) len (min len end)) do
+          (unless (= start end)
+            (funcall fn (elt rope i)))))
+      (let ((n (rope-l-len rope)) (l (rope-left rope)) (r (rope-right rope)))
+        (when (< start n)
+          (iterate l fn start end))
+        (when (= end -1)
+          (iterate r fn (max 0 (- start n)) end))
+        (when (> end n)
+          (iterate r fn (max 0 (- start n)) (- end n))))))
+
+(defun iterate-lines (rope fn &optional (from 0) (end -1))
+  (let ((line 0) (val (make-array 0 :element-type 'character
+                                  :fill-pointer 0
+                                  :adjustable t)))
+    (iterate rope (lambda (ch)
+                    (vector-push-extend ch val)
+                    (when (char= #\newline ch)
+                      (funcall fn val)
+                      (setf val (make-array 0 :element-type 'character
+                                            :fill-pointer 0
+                                            :adjustable t)))))))
+
+

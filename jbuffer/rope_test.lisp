@@ -155,5 +155,31 @@
 (is (jbrope::find-lines-list (format nil "a~%")) '(1))
 (is (jbrope::find-lines-list (format nil "~%~%~%")) '(0 1 2))
 
+(let* ((s (format nil "hello~%world~%goodbye"))
+       (rope (jbrope:str-to-rope s))
+       (rope2 (jbrope:insert rope (jbrope:str-to-rope "1") 3))
+       (rope3 (jbrope:insert rope2 (jbrope:str-to-rope "2") 10))
+       (rope4 (jbrope:insert rope3 (jbrope:str-to-rope "3") 16)))
+  (let ((a-str (format nil "hel1lo~%wor2ld~%go3odbye")))
+    (is (jbrope:rope-to-string rope4) a-str :test #'string=)
+    (let ((i 0))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i))))
+    (let ((i 3))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 10))
+    (let ((i 8))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 10))
+    (let ((i 12))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 10))
+    (let ((i 12))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21))
+    (let ((i 3))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21))
+    (let ((i 0) (lines #("hel1lo" "wor2ld" "go3odbye")))
+      (jbrope::iterate-lines rope4
+        (lambda (c)
+          (is (string-trim '(#\newline) c) (elt lines i) :test #'string=)
+          (incf i))))))
+
+
 
 (finalize)
