@@ -152,9 +152,6 @@
   (idx-coord-test rope4 7 2 0))
 
 
-(is (jbrope::find-lines-list (format nil "a~%")) '(1))
-(is (jbrope::find-lines-list (format nil "~%~%~%")) '(0 1 2))
-
 (let* ((s (format nil "hello~%world~%goodbye"))
        (rope (jbrope:str-to-rope s))
        (rope2 (jbrope:insert rope (jbrope:str-to-rope "1") 3))

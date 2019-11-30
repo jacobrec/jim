@@ -23,18 +23,6 @@
 
 (in-package :jbuffer-rope)
 
-(defun find-lines (str)
-  (coerce (find-lines-list str) 'vector))
-
-
-(defun find-lines-list (str &optional (i 0))
-  (cond
-    ((= i (- (length str) 1)) nil)
-    ((equal (elt str i) #\newline)
-     (cons (+ i 1) (find-lines-list str (+ i 1))))
-    (t (find-lines-list str (+ i 1)))))
-
-
 (defstruct rope
   l-len   ; length of left branch
   left    ; left branch
@@ -54,9 +42,30 @@
 
 ;;;;; TODO: write coord-to-idx and idx-to-coord
 (defun coord-to-idx (rope line col)
-  0)
-(defun idx-to-coord (rope idx)
-  '(0 . 0))
+  (let ((r 0) (c 0) (idx 0) (found nil))
+    (iterate rope (lambda (ch)
+                    (when (and (= line r) (= col c))
+                      (setf found t))
+                    (incf c)
+                    (when (char= #\newline ch)
+                      (incf r)
+                      (setf c 0))
+                    (unless found
+                      (incf idx))))
+    idx))
+
+(defun idx-to-coord (rope i)
+  (let ((r 0) (c 0) (idx 0) (found nil))
+    (iterate rope (lambda (ch)
+                    (when (= idx i)
+                      (setf found t))
+                    (unless found
+                      (incf c)
+                      (when (char= #\newline ch)
+                        (incf r)
+                        (setf c 0)))
+                    (incf idx)))
+    (cons r c)))
 
 
 (defun rope-ref (rope i)
