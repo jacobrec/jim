@@ -150,19 +150,18 @@
           (iterate r fn (max 0 (- start n)) (- end n))))))
 
 (defun iterate-lines (rope fn &optional (from 0) (end -1))
-  (let ((line 0) (val (make-array 0 :element-type 'character
-                                  :fill-pointer 0
-                                  :adjustable t)))
-    (iterate rope (lambda (ch)
-                    (vector-push-extend ch val)
-                    (when (char= #\newline ch)
-                      (when (>= line from)
-                        (when (or (< line end) (= -1 end))
-                          (funcall fn val)))
-                      (incf line)
-                      (setf val (make-array 0 :element-type 'character
-                                            :fill-pointer 0
-                                            :adjustable t)))))
-    (when (or (< line end) (= -1 end))
-      (funcall fn val))))
+  (flet ((in-bounds (line) (and (>= line from) (or (< line end) (= -1 end))))
+         (make-extendable-string () (make-array 0 :element-type 'character
+                                      :fill-pointer 0
+                                      :adjustable t)))
+    (let ((line 0) (val (make-extendable-string)))
+      (iterate rope (lambda (ch)
+                      (vector-push-extend ch val)
+                      (when (char= #\newline ch)
+                        (when (in-bounds line)
+                            (funcall fn val))
+                        (incf line)
+                        (setf val (make-extendable-string)))))
+      (when (in-bounds line)
+        (funcall fn val)))))
 
