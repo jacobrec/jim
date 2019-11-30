@@ -156,9 +156,13 @@
     (iterate rope (lambda (ch)
                     (vector-push-extend ch val)
                     (when (char= #\newline ch)
-                      (funcall fn val)
+                      (when (>= line from)
+                        (when (or (< line end) (= -1 end))
+                          (funcall fn val)))
+                      (incf line)
                       (setf val (make-array 0 :element-type 'character
                                             :fill-pointer 0
-                                            :adjustable t)))))))
-
+                                            :adjustable t)))))
+    (when (or (< line end) (= -1 end))
+      (funcall fn val))))
 

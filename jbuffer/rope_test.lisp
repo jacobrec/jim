@@ -173,12 +173,21 @@
     (let ((i 12))
       (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21))
     (let ((i 3))
-      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21))
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21)
+      (is i 22))
     (let ((i 0) (lines #("hel1lo" "wor2ld" "go3odbye")))
       (jbrope::iterate-lines rope4
         (lambda (c)
           (is (string-trim '(#\newline) c) (elt lines i) :test #'string=)
-          (incf i))))))
+          (incf i)))
+      (is i 3))
+
+    (let ((i 0) (ans "wor2ld"))
+      (jbrope::iterate-lines rope4
+        (lambda (c)
+          (is (string-trim '(#\newline) c) ans :test #'string=)
+          (incf i)) 1 2)
+      (is i 1))))
 
 
 
