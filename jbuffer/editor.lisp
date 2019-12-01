@@ -16,7 +16,8 @@
     #:del-coord-n
     #:undo
     #:redo
-    #:buffer))
+    #:buffer
+    #:buffer-fname))
 
 
 (in-package :jbuffer-editor)

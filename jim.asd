@@ -11,8 +11,9 @@
   :components ((:module "editor"
                 :components
                 ((:file "utils")
-                 (:file "draw" :depends-on ("utils"))
-                 (:file "main" :depends-on ("utils" "draw")))))
+                 (:file "editor" :depends-on ("utils"))
+                 (:file "draw" :depends-on ("utils" "editor"))
+                 (:file "main" :depends-on ("utils" "draw" "editor")))))
   :description "A pretty bad vi like editor"
   :build-operation program-op
   :build-pathname "jim"

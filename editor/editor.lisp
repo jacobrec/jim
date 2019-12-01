@@ -1,0 +1,110 @@
+(defpackage :jim-editor
+  (:use :common-lisp :jim-utils)
+  (:export open-new-tab
+           new-editor
+           editor-buffer
+           editor-cur
+           editor-cmd
+           editor-index
+           editor-redraw
+           editor-mode
+           editor-tabs
+           editor-selected-tab
+           tab-name
+
+           undo
+           delete-from
+
+           move-to-cursor
+           move-cursor
+           slide-cursor
+           active-cursor-index))
+
+(in-package :jim-editor)
+
+; an individual tab
+(defstruct tab
+  buffer
+  cur)
+
+(defun tab-name (tab)
+ (jbedit:buffer-fname (tab-buffer tab)))
+
+; contains the entire editor
+(defstruct editor
+  mode
+  selected-tab
+  tabs
+  redraw
+  cmd)
+
+(defun new-editor (files)
+  (make-editor
+    :mode :normal
+    :selected-tab 0
+    :tabs (mapcar (lambda (filename) (open-tab filename))
+                  (or files '("/tmp/jimscratch")))
+    :redraw (list :tabs :status :buffer :cmd)
+    :cmd ""))
+
+(defun editor-buffer (edit)
+  (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
+
+(defun editor-cur (edit)
+  (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit))))
+
+(defun editor-index (edit)
+  (cursor-index (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit)))))
+
+(defun delete-from (edit start end)
+  (setf (editor-buffer edit)
+    (jbedit:del-from (editor-buffer edit)
+                    start
+                    end)))
+
+(defun undo (edit amount)
+  (loop as i from 0 to amount do
+    (setf (editor-buffer edit)
+          (jbedit:undo (editor-buffer edit)))))
+
+(defun insert (edit str loc)
+  (setf (editor-buffer edit) (jbedit:insert (editor-buffer edit) str loc)))
+
+(defun open-tab (filename)
+  (make-tab
+    :buffer (jbedit:open-buff filename)
+    :cur (make-cursor :index 0 :line 0 :col 0)))
+
+(defun open-new-tab (edit filename)
+  (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
+
+;;; Cursor movements
+(defun move-to-cursor (edit r c &optional (propegate t))
+  (let ((cur (editor-cur edit)))
+    (setf (cursor-line cur) (min (1- (term-height)) (max 0 r)))
+    (setf (cursor-col cur) (min (1- (term-width)) (max 0 c)))
+    (when propegate
+      (setf (cursor-index cur)
+            (jbrope:coord-to-idx
+             (jbedit:buffer-head (editor-buffer edit))
+             (cursor-line cur)
+             (cursor-col cur)))
+      (refresh-cursor edit))))
+
+(defun refresh-cursor (edit)
+  (let ((loc (jbrope:idx-to-coord
+               (jbedit:buffer-head
+                 (editor-buffer edit))
+               (cursor-index (editor-cur edit)))))
+    (move-to-cursor edit (car loc) (cdr loc) nil)))
+
+(defun slide-cursor (edit amount)
+  (incf (cursor-index (editor-cur edit)) amount)
+  (refresh-cursor edit))
+
+(defun move-cursor (edit r c)
+  (move-to-cursor
+    edit
+    (+ r (cursor-line (editor-cur edit)))
+    (+ c (cursor-col (editor-cur edit)))))
+
