@@ -83,8 +83,7 @@
   (jbrope::iterate-lines rbuf
     (lambda (x)
       (draw-blank-line)
-      (format t "~C" #\return)
-      (format t "~a~C" x #\return))))
+      (format t "~C~a~C" #\return x #\return))))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))
