@@ -8,7 +8,7 @@
   :author  "Jacob Reckhard"
   :license "LGPLv3"
   :depends-on ("jbuffer")
-  :components ((:module "src"
+  :components ((:module "editor"
                 :components
                 ((:file "utils")
                  (:file "draw" :depends-on ("utils"))
