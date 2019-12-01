@@ -5,8 +5,6 @@
 
 (defvar *running* t)
 
-
-
 (defun set-dirty (edit place)
   (setf (editor-redraw edit) (cons place (editor-redraw edit))))
 
@@ -14,8 +12,6 @@
   (set-dirty edit :status)
   (set-dirty edit :cmd)
   (setf (editor-mode edit) mode))
-
-
 
 (defun run-app ()
   (stty '("-echo"))

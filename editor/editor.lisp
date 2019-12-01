@@ -12,6 +12,7 @@
            editor-selected-tab
            tab-name
 
+           insert
            undo
            delete-from
 
@@ -47,6 +48,10 @@
     :redraw (list :tabs :status :buffer :cmd)
     :cmd ""))
 
+(defun set-editor-buffer (edit buf)
+  (let ((tab (nth (editor-selected-tab edit) (editor-tabs edit))))
+    (setf (tab-buffer tab) buf)))
+
 (defun editor-buffer (edit)
   (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
 
@@ -56,20 +61,20 @@
 (defun editor-index (edit)
   (cursor-index (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit)))))
 
+
+;; Edit functionalities
 (defun delete-from (edit start end)
-  (setf (editor-buffer edit)
-    (jbedit:del-from (editor-buffer edit)
-                    start
-                    end)))
+  (set-editor-buffer edit (jbedit:del-from (editor-buffer edit) start end)))
 
 (defun undo (edit amount)
   (loop as i from 0 to amount do
-    (setf (editor-buffer edit)
-          (jbedit:undo (editor-buffer edit)))))
+    (set-editor-buffer edit (jbedit:undo (editor-buffer edit)))))
 
 (defun insert (edit str loc)
-  (setf (editor-buffer edit) (jbedit:insert (editor-buffer edit) str loc)))
+  (set-editor-buffer edit (jbedit:insert (editor-buffer edit) str loc)))
 
+
+;; tab manipualtion
 (defun open-tab (filename)
   (make-tab
     :buffer (jbedit:open-buff filename)

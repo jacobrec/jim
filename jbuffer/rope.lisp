@@ -140,8 +140,8 @@
   "linearizes the rope into a list"
   (if (rope-p rope)
     (append
-      (chunks (rope-l rope))
-      (chunks (rope-r rope)))
+      (chunks (rope-left rope))
+      (chunks (rope-right rope)))
     (list rope)))
 
 (defun next (rope idx chars)
