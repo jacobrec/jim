@@ -187,7 +187,11 @@
         (lambda (c)
           (is (string-trim '(#\newline) c) ans :test #'string=)
           (incf i)) 1 2)
-      (is i 1))))
+      (is i 1))
+
+    (is (jbrope::next rope4 2 '(#\newline)) 6)
+    (is (jbrope::next rope4 7 '(#\newline)) 13)
+    (is (jbrope::next rope4 14 '(#\newline)) nil)))
 
 
 

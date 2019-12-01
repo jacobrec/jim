@@ -144,6 +144,16 @@
       (chunks (rope-r rope)))
     (list rope)))
 
+(defun next (rope idx chars)
+  (let ((found nil) (loc idx))
+    (iterate rope (lambda (ch)
+                    (when (position ch chars)
+                      (setf found t))
+                    (unless found
+                      (incf loc)))
+                  idx)
+    (if found loc nil)))
+
 (defun iterate (rope fn &optional (start 0) (end -1))
   (if (jbstring:istring-p rope)
       (let ((len (1- (length rope))))
