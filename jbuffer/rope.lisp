@@ -42,17 +42,22 @@
 
 ;;;;; TODO: This is slow, maybe remove coord-to-idx and idx-to-coord
 (defun coord-to-idx (rope line col)
-  (let ((r 0) (c 0) (idx 0) (found nil))
+  (let ((r 0) (c 0) (idx 0) (oc 0) (found nil))
     (iterate rope (lambda (ch)
                     (when (and (= line r) (= col c))
                       (setf found t))
-                    (incf c)
+                    (incf oc)
                     (when (char= #\newline ch)
                       (incf r)
-                      (setf c 0))
+                      (setf oc 0)
+                      (when (> r line)
+                        (setf found t)
+                        (decf r)
+                        (setf oc (1- c))))
+                    (setf c oc)
                     (unless found
                       (incf idx))))
-    idx))
+    (if found idx (1- idx))))
 
 (defun idx-to-coord (rope i)
   (let ((r 0) (c 0) (idx 0) (found nil))
@@ -71,7 +76,7 @@
 (defun rope-ref (rope i)
   "gets the char in the rope at index i"
   (cond
-    ((jbstring:istring-p rope) (aref rope i))
+    ((jbstring:istring-p rope) (elt rope i))
     ((< i (rope-l-len rope)) (rope-ref (rope-left rope) i))
     (t (rope-ref (rope-right rope) (- i (rope-l-len rope))))))
 

@@ -83,6 +83,8 @@
 (defun open-new-tab (edit filename)
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
+;; TODO: cursor movements are really ineffecient
+;; TODO: editor crashes if you go down too far
 ;;; Cursor movements
 (defun move-to-cursor (edit r c &optional (propegate t))
   (let ((cur (editor-cur edit)))
@@ -97,11 +99,15 @@
       (refresh-cursor edit))))
 
 (defun refresh-cursor (edit)
-  (let ((loc (jbrope:idx-to-coord
-               (jbedit:buffer-head
-                 (editor-buffer edit))
-               (cursor-index (editor-cur edit)))))
-    (move-to-cursor edit (car loc) (cdr loc) nil)))
+  (if (char= #\newline (jbrope:rope-ref (jbedit:buffer-head
+                                          (editor-buffer edit))
+                                        (cursor-index (editor-cur edit))))
+      (move-cursor edit 0 -1)
+      (let ((loc (jbrope:idx-to-coord
+                   (jbedit:buffer-head
+                     (editor-buffer edit))
+                   (cursor-index (editor-cur edit)))))
+        (move-to-cursor edit (car loc) (cdr loc) nil))))
 
 (defun slide-cursor (edit amount)
   (incf (cursor-index (editor-cur edit)) amount)

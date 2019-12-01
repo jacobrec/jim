@@ -43,7 +43,7 @@
                                    (editor-index edit)
                                    (1+ (editor-index edit)))
         (set-dirty edit :buffer))
-       ((char= #\u ch) (undo 1)
+       ((char= #\u ch) (undo edit 1)
                        (set-dirty edit :buffer))))
     ((:cmd)
      (cond
