@@ -80,7 +80,7 @@
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
-  (loop for i from 0 to 50 do
+  (loop for i from 0 to 30 do
     (draw-blank-line)
     (format t "~c~c" #\newline #\return))
   (move-to 1 2)
@@ -113,7 +113,7 @@
   (when (or t (is-dirty edit :status))
     (draw-status
       (editor-mode edit)
-      (format nil "~a" "IDK what should be here")
+      (format nil "~a" (get-universal-time))
       (format nil "R:~a C~a"
               (cursor-line (editor-cur edit))
               (cursor-col (editor-cur edit)))))

@@ -84,7 +84,7 @@
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
 ;; TODO: cursor movements are really ineffecient
-;; TODO: editor crashes if you go down too far
+;; TODO: editor crashes if you go down too far (infinite recursion in these methods?)
 ;;; Cursor movements
 (defun move-to-cursor (edit r c &optional (propegate t))
   (let ((cur (editor-cur edit)))
