@@ -172,12 +172,9 @@
     (let ((i 3))
       (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) i 21)
       (is i 22))
-    (diag "With Break")
     (let ((i 0))
-      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) 0 -1
-                       :break-func (lambda () (format t "~a" i) (> i 10)))
-      (is i 11))
-    (diag "Unbound Lines")
+      (jbrope::iterate rope4 (lambda (c) (is c (char a-str i)) (incf i)) 0 -1)
+      (is i 22))
     (let ((i 0) (lines #("hel1lo" "wor2ld" "go3odbye")))
       (jbrope::iterate-lines rope4
         (lambda (c)
@@ -185,7 +182,6 @@
           (incf i)))
       (is i 3))
 
-    (diag "Bound Lines")
     (let ((i 0) (ans "wor2ld"))
       (jbrope::iterate-lines rope4
         (lambda (c)

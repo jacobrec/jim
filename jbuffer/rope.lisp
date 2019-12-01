@@ -144,22 +144,20 @@
       (chunks (rope-r rope)))
     (list rope)))
 
-(defun iterate (rope fn &optional (start 0) (end -1) &key (break-func nil))
+(defun iterate (rope fn &optional (start 0) (end -1))
   (if (jbstring:istring-p rope)
       (let ((len (1- (length rope))))
         (loop for i from start to (if (= -1 end) len (min len end)) do
-          (unless (or (= start end) (and break-func (funcall break-func)))
-            (funcall fn (elt rope i)))))
+          (funcall fn (elt rope i))))
       (let ((n (rope-l-len rope)) (l (rope-left rope)) (r (rope-right rope)))
-        (unless (and break-func (funcall break-func))
-          (when (< start n)
-            (iterate l fn start end :break-func break-func))
-          (when (= end -1)
-            (iterate r fn (max 0 (- start n)) end) :break-func break-func)
-          (when (> end n)
-            (iterate r fn (max 0 (- start n)) (- end n) :break-func break-func))))))
+        (when (< start n)
+          (iterate l fn start end))
+        (when (= end -1)
+          (iterate r fn (max 0 (- start n)) end))
+        (when (> end n)
+          (iterate r fn (max 0 (- start n)) (- end n))))))
 
-(defun iterate-lines (rope fn &optional (from 0) (end -1) &key (break-func nil))
+(defun iterate-lines (rope fn &optional (from 0) (end -1))
   (flet ((in-bounds (line) (and (>= line from) (or (< line end) (= -1 end))))
          (make-extendable-string () (make-array 0 :element-type 'character
                                       :fill-pointer 0
@@ -171,10 +169,7 @@
                         (when (in-bounds line)
                             (funcall fn val))
                         (incf line)
-                        (setf val (make-extendable-string)))) 0 -1
-               :break-func (lambda () (or
-                                        (and break-func (funcall break-func))
-                                        (and (not (= end -1)) (< end line)))))
+                        (setf val (make-extendable-string)))) 0 -1)
       (when (in-bounds line)
         (funcall fn val)))))
 
