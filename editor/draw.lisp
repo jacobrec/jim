@@ -80,17 +80,11 @@
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
-  (loop for i from 0 to 30 do
-    (draw-blank-line)
-    (format t "~c~c" #\newline #\return))
-  (move-to 1 2)
-  (loop for chunk in (jbrope:chunks rbuf) do
-    (map nil
-         (lambda (x)
-           (cond ((char= x #\newline)
-                  (format t "~C~C" #\newline #\return))
-                 (t (format t "~C" x))))
-         chunk)))
+  (jbrope::iterate-lines rbuf
+    (lambda (x)
+      (draw-blank-line)
+      (format t "~C" #\return)
+      (format t "~a~C" x #\return))))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))
