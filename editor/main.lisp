@@ -33,6 +33,8 @@
         (setf (editor-cmd edit) nil)
         (set-mode edit :cmd))
        ((char= #\i ch) (set-mode edit :insert))
+       ((char= #\b ch) (slide-cursor edit 1)) ;; TODO: remove. For testing only
+       ((char= #\v ch) (slide-cursor edit -1)) ;; TODO: remove. For testing only
        ((char= #\h ch) (move-cursor edit 0 -1))
        ((char= #\j ch) (move-cursor edit 1 0))
        ((char= #\k ch) (move-cursor edit -1 0))

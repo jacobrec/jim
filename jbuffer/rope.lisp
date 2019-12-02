@@ -18,6 +18,8 @@
     #:rope-lines
     #:concat
     #:insert
+    #:prev
+    #:next
     #:del-from
     #:chunks))
 
@@ -149,15 +151,15 @@
       (chunks (rope-right rope)))
     (list rope)))
 
-(defun next (rope idx chars)
-  (let ((found nil) (loc idx))
-    (iterate rope (lambda (ch)
-                    (when (position ch chars)
-                      (setf found t))
-                    (unless found
-                      (incf loc)))
-                  idx)
-    (if found loc nil)))
+(defun next (rope idx chars &optional (dir 1))
+  (let ((found nil) (i idx) (len (rope-len rope)))
+    (loop while (and (not found) (>= (+ dir i) 0) (< (+ dir i) len)) do
+      (incf i dir)
+      (setf found (position (rope-ref rope i) chars)))
+    (if found i nil)))
+
+(defun prev (rope idx chars)
+  (next rope idx chars -1))
 
 (defun iterate (rope fn &optional (start 0) (end -1))
   (if (jbstring:istring-p rope)

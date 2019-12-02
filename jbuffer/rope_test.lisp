@@ -191,7 +191,11 @@
 
     (is (jbrope::next rope4 2 '(#\newline)) 6)
     (is (jbrope::next rope4 7 '(#\newline)) 13)
-    (is (jbrope::next rope4 14 '(#\newline)) nil)))
+    (is (jbrope::next rope4 14 '(#\newline)) nil)
+
+    (is (jbrope::prev rope4 2 '(#\newline)) nil)
+    (is (jbrope::prev rope4 7 '(#\newline)) 6)
+    (is (jbrope::prev rope4 14 '(#\newline)) 13)))
 
 (let* ((s (format nil "hi~%hello~%"))
        (rope (jbrope:str-to-rope s)))
@@ -206,5 +210,12 @@
   (is (jbrope:coord-to-idx rope 1 5) 8)
   (is (jbrope:coord-to-idx rope 1 6) 8))
 
+(let* ((s (format nil "hi~%hello")) (r (str-to-rope s)))
+  (is (jbrope:rope-ref r 0) #\h)
+  (is (jbrope:rope-ref r 1) #\i)
+  (is (jbrope:rope-ref r 2) #\newline)
+  (is (jbrope:rope-ref r 3) #\h)
+  (is (jbrope::prev r 3 '(#\newline)) 2)
+  (is (jbrope::prev r 2 '(#\newline)) nil))
 
 (finalize)

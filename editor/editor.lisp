@@ -16,7 +16,6 @@
            undo
            delete-from
 
-           move-to-cursor
            move-cursor
            slide-cursor
            active-cursor-index))
@@ -55,6 +54,9 @@
 (defun editor-buffer (edit)
   (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
 
+(defun editor-rope (edit)
+  (jbedit:buffer-head (editor-buffer edit)))
+
 (defun editor-cur (edit)
   (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit))))
 
@@ -85,40 +87,43 @@
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
 ;; TODO: cursor movements are really ineffecient
-;; TODO: editor crashes if you go down too far (infinite recursion in these methods?)
-;;; Cursor movements
-(defun move-to-cursor (edit r c &optional (propegate t))
-  (let ((cur (editor-cur edit)))
-    (setf (cursor-line cur) (max 0 (min (1- (term-height)) r)))
-    (setf (cursor-col cur) (max 0 (min (1- (term-width)) c)))
-    (when propegate
-      (setf (cursor-index cur)
-            (jbrope:coord-to-idx
-             (jbedit:buffer-head (editor-buffer edit))
-             (cursor-line cur)
-             (cursor-col cur)))
-      (refresh-cursor edit))))
-
-(defun refresh-cursor (edit)
-  (when (> 0 (cursor-index (editor-cur edit)))
-    (setf (cursor-index (editor-cur edit)) 0))
-  (if (char= #\newline (jbrope:rope-ref (jbedit:buffer-head
-                                          (editor-buffer edit))
-                                        (cursor-index (editor-cur edit))))
-      (move-cursor edit 0 -1)
-      (let ((loc (jbrope:idx-to-coord
-                   (jbedit:buffer-head
-                     (editor-buffer edit))
-                   (cursor-index (editor-cur edit)))))
-        (move-to-cursor edit (car loc) (cdr loc) nil))))
-
 (defun slide-cursor (edit amount)
-  (incf (cursor-index (editor-cur edit)) amount)
-  (refresh-cursor edit))
+  (move edit 0 amount t))
 
 (defun move-cursor (edit r c)
-  (move-to-cursor
-    edit
-    (+ r (cursor-line (editor-cur edit)))
-    (+ c (cursor-col (editor-cur edit)))))
+  (move edit r c nil))
 
+(defun move (edit r c wrap)
+  (let ((cur (editor-cur edit)))
+    (cond ((and (= 0 r) (< c 0) (>= (+ (cursor-col cur) c) 0))
+           ;; Moving left and will not underflow column
+           (incf (cursor-index (editor-cur edit)) c)
+           (incf (cursor-col (editor-cur edit)) c))
+          ((and (= 0 r) (< c 0))
+           ;; Moving left and will underflow column
+           (when wrap
+            (when (> (cursor-line cur) 0)
+              (incf (cursor-line (editor-cur edit)) -1)
+              (let* ((eol (jbrope:prev (editor-rope edit)
+                                       (1+ (cursor-index cur)) '(#\newline)))
+                     (sol (jbrope:prev (editor-rope edit)
+                                       (or eol 0) '(#\newline))))
+                (setf (cursor-col (editor-cur edit)) (- (or eol 0) (or sol 0))))
+              (incf (cursor-index (editor-cur edit)) -1))))
+          ((and (= 0 r) (> c 0) (not (char= (jbrope:rope-ref
+                                               (editor-rope edit)
+                                               (cursor-index cur))
+                                            #\newline))
+                                (> (jbrope:rope-len (editor-rope edit))
+                                   (1+ (cursor-index cur))))
+           ;; Moving right, and will not overflow column
+           (incf (cursor-index (editor-cur edit)) 1)
+           (incf (cursor-col (editor-cur edit)) 1)
+           (move edit r (- c 1) wrap))
+          ((and (= 0 r) (> c 0) (> (jbrope:rope-len (editor-rope edit))
+                                   (1+ (cursor-index cur))))
+           ;; Moving right, and will overflow column
+           (when wrap
+            (incf (cursor-line (editor-cur edit)) 1)
+            (setf (cursor-col (editor-cur edit)) 0)
+            (incf (cursor-index (editor-cur edit)) 1))))))

@@ -106,7 +106,7 @@
   (when (or t (is-dirty edit :status))
     (draw-status
       (editor-mode edit)
-      (format nil "~a" (get-universal-time))
+      (format nil "~a" (editor-cur edit))
       (format nil "R:~a C~a"
               (cursor-line (editor-cur edit))
               (cursor-col (editor-cur edit)))))
