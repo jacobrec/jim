@@ -80,10 +80,11 @@
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
+  (draw-blank-line)
   (jbrope::iterate-lines rbuf
     (lambda (x)
-      (draw-blank-line)
-      (format t "~C~a~C" #\return x #\return))))
+      (format t "~C~a~C" #\return x #\return)
+      (draw-blank-line))))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))

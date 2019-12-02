@@ -135,7 +135,20 @@
            (when wrap
             (incf (cursor-line (editor-cur edit)) 1)
             (setf (cursor-col (editor-cur edit)) 0)
-            (incf (cursor-index (editor-cur edit)) 1))))))
+            (incf (cursor-index (editor-cur edit)) 1)))
+          ((and (= c 0) (> r 0))
+           ;; moving down
+           (let* ((sol (jbrope:next (editor-rope edit)
+                                    (cursor-index cur) '(#\newline)))
+                  (eol (jbrope:next (editor-rope edit)
+                                    (or sol 0) '(#\newline))))
+             (when sol
+               (incf (cursor-line cur) 1)
+               (let ((new-col
+                       (min (cursor-col cur)
+                            (- (or eol (jbrope:rope-len (editor-rope edit))) sol))))
+                 (incf (cursor-index cur) (+ (- (cursor-col cur) sol) new-col))
+                 (setf (cursor-col cur) new-col))))))))
 
 (defun add-char (edit ch)
   (insert edit (make-string 1 :initial-element ch)
