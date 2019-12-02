@@ -5,22 +5,15 @@
 
 (defvar *running* t)
 
-(defun set-dirty (edit place)
-  (setf (editor-redraw edit) (cons place (editor-redraw edit))))
-
-(defun set-mode (edit mode)
-  (set-dirty edit :status)
-  (set-dirty edit :cmd)
-  (setf (editor-mode edit) mode))
 
 (defun run-app ()
   (stty '("-echo"))
   (stty '("raw"))
   (jim-utils:command "?1049" #\h)
-  (let ((edit (new-editor nil)))
+  (let ((*editor* (new-editor nil)))
     (loop while *running* do
-      (jim-io:draw-screen edit)
-      (do-input edit (read-char))))
+      (jim-io:draw-screen *editor*)
+      (do-input *editor* (read-char))))
   (jim-utils:command "?1049" #\l)
   (stty '("sane")))
 
@@ -69,12 +62,6 @@
        ((char= #\return ch)
         (add-char edit #\newline))
        (t (add-char edit ch))))))
-
-(defun add-char (edit ch)
-  (insert edit (make-string 1 :initial-element ch)
-               (cursor-index (editor-cur edit)))
-  (slide-cursor edit 1)
-  (set-dirty edit :buffer))
 
 (defun do-command (edit)
   (let ((cmd (string-trim '(#\space #\return #\linefeed)
