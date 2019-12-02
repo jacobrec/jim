@@ -10,6 +10,7 @@
   (stty '("-echo"))
   (stty '("raw"))
   (jim-utils:command "?1049" #\h)
+  (vim:use-vim-bindings)
   (let ((*editor* (new-editor nil)))
     (loop while *running* do
       (jim-io:draw-screen *editor*)
@@ -20,26 +21,6 @@
 (defun do-input (edit ch)
   (set-dirty edit :status)
   (case (editor-mode edit)
-    ((:normal)
-     (cond
-       ((char= #\: ch)
-        (setf (editor-cmd edit) nil)
-        (set-mode edit :cmd))
-       ((char= #\i ch) (set-mode edit :insert))
-       ((char= #\b ch) (slide-cursor edit 1)) ;; TODO: remove. For testing only
-       ((char= #\v ch) (slide-cursor edit -1)) ;; TODO: remove. For testing only
-       ((char= #\h ch) (move-cursor edit 0 -1))
-       ((char= #\j ch) (move-cursor edit 1 0))
-       ((char= #\k ch) (move-cursor edit -1 0))
-       ((char= #\l ch) (move-cursor edit 0 1))
-       ((char= #\0 ch) (move-cursor edit 0 -1000000))
-       ((char= #\$ ch) (move-cursor edit 0 1000000))
-       ((char= #\x ch) (delete-from edit
-                                   (editor-index edit)
-                                   (1+ (editor-index edit)))
-        (set-dirty edit :buffer))
-       ((char= #\u ch) (undo edit 1)
-                       (set-dirty edit :buffer))))
     ((:cmd)
      (cond
        ((char= #\escape ch) (set-mode edit :normal))
@@ -52,16 +33,7 @@
         (set-dirty edit :cmd))
        (t (setf (editor-cmd edit) (cons ch (editor-cmd edit)))
           (set-dirty edit :cmd))))
-    ((:insert)
-     (cond
-       ((char= #\escape ch) (set-mode edit :normal))
-       ((char= #\rubout ch) (delete-from edit (1- (editor-index edit))
-                                              (editor-index edit))
-        (slide-cursor edit -1)
-        (set-dirty edit :buffer))
-       ((char= #\return ch)
-        (add-char edit #\newline))
-       (t (add-char edit ch))))))
+    (otherwise (jim.bindings:do-keypress ch))))
 
 (defun do-command (edit)
   (let ((cmd (string-trim '(#\space #\return #\linefeed)

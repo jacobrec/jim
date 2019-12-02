@@ -22,14 +22,17 @@
 
 (defun normal-mode ()
   "enter normal mode"
+  (setf *key-bindings* *normal-bindings*)
   (jim-editor:set-mode jim-editor:*editor* :normal))
 
 (defun insert-mode ()
   "enter insert mode"
+  (setf *key-bindings* *insert-bindings*)
   (jim-editor:set-mode jim-editor:*editor* :insert))
 
 (defun command-mode ()
   "enter insert mode"
+  (setf (jim-editor:editor-cmd jim-editor:*editor*) nil)
   (jim-editor:set-mode jim-editor:*editor* :cmd))
 
 
@@ -69,11 +72,11 @@
 (bind-normal ("x")
   (jim-editor:delete-from jim-editor:*editor* (jim-editor:editor-index jim-editor:*editor*)
                (1+ (jim-editor:editor-index jim-editor:*editor*)))
-  (set-dirty edit :buffer))
+  (jim-editor:set-dirty jim-editor:*editor* :buffer))
 
 (bind-normal ("u")
-  (undo jim-editor:*editor* 1)
-  (set-dirty jim-editor:*editor* :buffer))
+  (jim-editor:undo jim-editor:*editor* 1)
+  (jim-editor:set-dirty jim-editor:*editor* :buffer))
 
 ;;; insert mode bindings
 (bind-insert (<C-c>)
