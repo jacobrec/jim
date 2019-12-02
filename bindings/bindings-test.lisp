@@ -7,7 +7,8 @@
 
 (let* ((*key-bindings* (make-trie))
       (*key-state* *key-bindings*)
-      (status nil))
+      (status nil)
+      (rep #\0))
 
   (bind (<C-c> <C-x>)
     (setf status 0))
@@ -15,6 +16,10 @@
     (setf status 1))
   (bind ("gqg" <CR>)
     (setf status 2))
+  (bind ("r" '*)
+    (setf rep *last-key*))
+  (bind ("rr")
+    (setf rep #\backspace))
 
   (do-keypress <C-c>)
   (is status nil)
@@ -48,12 +53,18 @@
   (do-keypress <C-x>)
   (is status 0)
 
-  )
-
-
-
-
-
-
+  (is rep #\0)
+  (do-keypress #\r)
+  (is rep #\0)
+  (do-keypress #\g)
+  (is rep #\g)
+  (do-keypress #\r)
+  (is rep #\g)
+  (do-keypress #\r)
+  (is rep #\backspace)
+  (do-keypress #\r)
+  (is rep #\backspace)
+  (do-keypress #\x)
+  (is rep #\x))
 
 (finalize)
