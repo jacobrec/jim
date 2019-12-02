@@ -64,7 +64,8 @@
 
 ;; Edit functionalities
 (defun delete-from (edit start end)
-  (set-editor-buffer edit (jbedit:del-from (editor-buffer edit) start end)))
+  (set-editor-buffer edit (jbedit:del-from (editor-buffer edit)
+                                           (max 0 start) (max 0 end))))
 
 (defun undo (edit amount)
   (loop as i from 0 to amount do
@@ -88,8 +89,8 @@
 ;;; Cursor movements
 (defun move-to-cursor (edit r c &optional (propegate t))
   (let ((cur (editor-cur edit)))
-    (setf (cursor-line cur) (min (1- (term-height)) (max 0 r)))
-    (setf (cursor-col cur) (min (1- (term-width)) (max 0 c)))
+    (setf (cursor-line cur) (max 0 (min (1- (term-height)) r)))
+    (setf (cursor-col cur) (max 0 (min (1- (term-width)) c)))
     (when propegate
       (setf (cursor-index cur)
             (jbrope:coord-to-idx
@@ -99,6 +100,8 @@
       (refresh-cursor edit))))
 
 (defun refresh-cursor (edit)
+  (when (> 0 (cursor-index (editor-cur edit)))
+    (setf (cursor-index (editor-cur edit)) 0))
   (if (char= #\newline (jbrope:rope-ref (jbedit:buffer-head
                                           (editor-buffer edit))
                                         (cursor-index (editor-cur edit))))
