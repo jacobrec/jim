@@ -36,4 +36,16 @@
 (let ((trie (make-trie)))
   (is (trie-inc trie '(#\a)) nil))
 
+(let ((trie (make-trie)))
+  (trie-insert trie '(#\b #\c) 7)
+  (trie-insert trie '(#\b *) 8)
+  (trie-insert trie '(#\b #\x #\y) 9)
+
+  (is (trie-ref trie '(#\b)) nil)
+  (is (trie-ref trie '(#\b #\x #\y)) 9)
+  (is (trie-ref trie '(#\b #\c)) 7)
+  (is (trie-ref trie '(#\b #\d)) 8)
+  (is (trie-ref trie '(#\b #\e)) 8)
+  (is (trie-ref trie '(#\b #\e #\f)) nil))
+
 (finalize)

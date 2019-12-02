@@ -22,6 +22,7 @@
     ((null arg) nil)
     ((stringp arg) (coerce arg 'list))
     ((characterp arg) (list arg))
+    ((equal arg '*) (list arg))
     ((atom arg) (error "invalid keybinding sequence"))
     (t (mapcan #'kseq-lst arg))))
 
