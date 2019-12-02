@@ -28,9 +28,10 @@
 
 (defun do-keypress (ch)
   "execute a single character of a keysequence"
-  (setf *key-state* (trie-inc *key-state* ch))
-  (cond
-    ((null *key-state*) (setf *key-state* *key-bindings*))
-    ((functionp *key-state*) (funcall *key-state*)
-                             (setf *key-state* *key-bindings*))))
+  (let ((next-state (trie-inc *key-state* ch)))
+    (cond
+      ((null next-state) (setf *key-state* *key-bindings*))
+      ((functionp next-state) (funcall next-state)
+                              (setf *key-state* *key-bindings*))
+      (t (setf *key-state* next-state)))))
 
