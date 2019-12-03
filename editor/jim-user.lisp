@@ -3,15 +3,22 @@
   (:use :cl :jim.bindings :jim.api))
 
 (defpackage :jim-user-util
-  (:use :cl))
+  (:use :cl)
+  (:export
+    jim-user-load
+    load-jimrc))
 
 (in-package :jim-user-util)
 
-(defun jim-load (file)
-  "loads a file in the :jim-user package"
+(defun jim-user-load (&rest args)
+  "loads a file in the :jim-user package, forwards all args to load"
   (let ((old-pkg *package*)
         (old-rtable *readtable*))
     (in-package :jim-user)
-    (load file)
+    (apply #'load args)
     (setf *package* old-pkg)
     (setf *readtable* old-rtable)))
+
+(defun load-jimrc ()
+  "loads ~/.jimrc into the :jim-user package"
+  (jim-user-load "~/.jimrc" :if-does-not-exist nil))

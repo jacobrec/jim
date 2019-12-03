@@ -11,6 +11,7 @@
   (stty '("raw"))
   (jim-utils:command "?1049" #\h)
   (vim:use-vim-bindings)
+  (jim-user-util:load-jimrc)
   (let ((jim.api:*editor* (new-editor nil)))
     (loop while *running* do
       (jim-io:draw-screen jim.api:*editor*)
