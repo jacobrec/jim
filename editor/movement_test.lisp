@@ -121,8 +121,8 @@
   (is (col e) 5)
   (is (index e) 8)
   (move-cursor-row e -1)
-  (is (row e) 1)
+  (is (row e) 2)
   (is (col e) 0)
-  (is (index e) 1))
+  (is (index e) 2))
 
 (finalize)

@@ -114,7 +114,8 @@
          (i (cursor-index cur))
          (rope (editor-rope edit)))
     (cond  ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope))
-                 (char= #\newline (jbrope:rope-ref rope (1+ i))))
+                 (or (char= #\newline (jbrope:rope-ref rope i))
+                     (char= #\newline (jbrope:rope-ref rope (1+ i)))))
             ;; Forward hits line end
             (when wrap
               (unless (= (+ (cursor-index cur) 2) (jbrope:rope-len rope))
@@ -168,11 +169,10 @@
       (incf r 1)
       (let* ((loc (or (jbrope:prev rope
                             (or (jbrope:prev rope i '(#\newline)) 0)
-                           '(#\newline)) 0))
+                           '(#\newline)) -1))
              (dif (- i loc)))
         (decf (cursor-index cur) dif)
-        (unless (= 0 loc)
-          (incf (cursor-index cur)))
+        (incf (cursor-index cur))
         (setf (cursor-col cur) 0)
         (decf (cursor-line cur)))
       (move-rows edit r))))
