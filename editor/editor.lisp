@@ -1,7 +1,6 @@
 (defpackage :jim-editor
   (:use :common-lisp :jim-utils)
-  (:export *editor*
-           open-new-tab
+  (:export open-new-tab
            new-editor
            editor-buffer
            editor-cur
@@ -22,16 +21,12 @@
            move-cursor-col
            slide-cursor
            active-cursor-index
+           cursor-index
 
-           add-char
            set-dirty
-           set-mode
-           backspace))
+           set-mode))
 
 (in-package :jim-editor)
-
-; the global editor state
-(defvar *editor*)
 
 ; an individual tab
 (defstruct tab
@@ -76,7 +71,6 @@
 (defun editor-index (edit)
   (cursor-index (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit)))))
 
-
 ;; Edit functionalities
 (defun delete-from (edit start end)
   (set-editor-buffer edit (jbedit:del-from (editor-buffer edit)
@@ -89,7 +83,6 @@
 (defun insert (edit str loc)
   (set-editor-buffer edit (jbedit:insert (editor-buffer edit) str loc)))
 
-
 ;; tab manipualtion
 (defun open-tab (filename)
   (make-tab
@@ -99,7 +92,7 @@
 (defun open-new-tab (edit filename)
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
-;; TODO: cursor movements are really ineffecient
+;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount)
   (move-cols edit amount t))
 (defun move-cursor-col (edit amount)
@@ -114,7 +107,8 @@
          (i (cursor-index cur))
          (rope (editor-rope edit)))
     (cond  ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope))
-                 (char= #\newline (jbrope:rope-ref rope (1+ i))))
+                 (or (char= #\newline (jbrope:rope-ref rope i))
+                     (char= #\newline (jbrope:rope-ref rope (1+ i)))))
             ;; Forward hits line end
             (when wrap
               (unless (= (+ (cursor-index cur) 2) (jbrope:rope-len rope))
@@ -153,10 +147,13 @@
       ; moving down (incrementing row)
       (decf r 1)
       (decf (cursor-index cur) (cursor-col cur))
+      (when (char= #\newline (jbrope:rope-ref rope (cursor-index cur)))
+        (decf (cursor-index cur)))
       (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
         (when eol
-          (setf (cursor-index cur) eol)
-          (incf (cursor-index cur))
+          (let ((i (cursor-index cur)))
+            (setf (cursor-index cur) eol)
+            (incf (cursor-index cur)))
           (setf (cursor-col cur) 0)
           (incf (cursor-line cur))
           (move-rows edit r))))
@@ -165,21 +162,13 @@
       (incf r 1)
       (let* ((loc (or (jbrope:prev rope
                             (or (jbrope:prev rope i '(#\newline)) 0)
-                           '(#\newline)) 0))
+                           '(#\newline)) -1))
              (dif (- i loc)))
         (decf (cursor-index cur) dif)
-        (unless (= 0 loc)
-          (incf (cursor-index cur)))
+        (incf (cursor-index cur))
         (setf (cursor-col cur) 0)
         (decf (cursor-line cur)))
       (move-rows edit r))))
-
-(defun add-char (edit ch)
-  (insert edit (make-string 1 :initial-element ch)
-               (cursor-index (editor-cur edit)))
-  (slide-cursor edit 1)
-  (set-dirty edit :buffer))
-
 
 (defun set-dirty (edit place)
   (setf (editor-redraw edit) (cons place (editor-redraw edit))))
@@ -189,7 +178,3 @@
   (set-dirty edit :cmd)
   (setf (editor-mode edit) mode))
 
-(defun backspace (edit)
-  (delete-from edit (1- (editor-index edit)) (editor-index edit))
-  (slide-cursor edit -1)
-  (set-dirty edit :buffer))
