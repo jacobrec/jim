@@ -83,7 +83,10 @@
   (draw-blank-line)
   (jbrope::iterate-lines rbuf
     (lambda (x)
-      (format t "~C~a~C" #\return x #\return)
+      (format t "~C~a" #\return x)
+      (set-color BLU 'fg)
+      (format t "~C~C~C" #\↵ #\newline #\return)
+      (set-color RST 'fg)
       (draw-blank-line))))
 
 (defun is-dirty (edit place)
