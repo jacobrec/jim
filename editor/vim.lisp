@@ -86,6 +86,23 @@
 (bind-normal ("u")
   (undo))
 
+(vim:bind-normal ("r" '*)
+  (del)
+  (insert-char *last-key*)
+  (cursor-left))
+
+(vim:bind-normal (<Left>)
+  (cursor-left))
+
+(vim:bind-normal (<Down>)
+  (cursor-down))
+
+(vim:bind-normal (<Up>)
+  (cursor-up))
+
+(vim:bind-normal (<Right>)
+  (cursor-right))
+
 ;;; insert mode bindings
 (bind-insert (<C-c>)
   (normal-mode))
@@ -99,3 +116,15 @@
 
 (bind-insert (#\return)
   (enter))
+
+(vim:bind-insert (<Left>)
+  (cursor-left))
+
+(vim:bind-insert (<Down>)
+  (cursor-down))
+
+(vim:bind-insert (<Up>)
+  (cursor-up))
+
+(vim:bind-insert (<Right>)
+  (cursor-right))
