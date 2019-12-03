@@ -1,6 +1,7 @@
 (defpackage :jim-editor
   (:use :common-lisp :jim-utils)
-  (:export open-new-tab
+  (:export *editor*
+           open-new-tab
            new-editor
            editor-buffer
            editor-cur
@@ -18,9 +19,17 @@
 
            move-cursor
            slide-cursor
-           active-cursor-index))
+           active-cursor-index
+
+           add-char
+           set-dirty
+           set-mode
+           backspace))
 
 (in-package :jim-editor)
+
+; the global editor state
+(defvar *editor*)
 
 ; an individual tab
 (defstruct tab
@@ -141,3 +150,22 @@
                  (incf (cursor-index cur) (+ (- (cursor-col cur) sol) new-col))
                  (setf (cursor-col cur) new-col))))))))
 
+(defun add-char (edit ch)
+  (insert edit (make-string 1 :initial-element ch)
+               (cursor-index (editor-cur edit)))
+  (slide-cursor edit 1)
+  (set-dirty edit :buffer))
+
+
+(defun set-dirty (edit place)
+  (setf (editor-redraw edit) (cons place (editor-redraw edit))))
+
+(defun set-mode (edit mode)
+  (set-dirty edit :status)
+  (set-dirty edit :cmd)
+  (setf (editor-mode edit) mode))
+
+(defun backspace (edit)
+  (delete-from edit (1- (editor-index edit)) (editor-index edit))
+  (slide-cursor edit -1)
+  (set-dirty edit :buffer))
