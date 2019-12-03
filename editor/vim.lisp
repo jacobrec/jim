@@ -9,7 +9,6 @@
     bind-normal
     bind-insert))
 
-
 (in-package :jim.vim)
 
 (defvar *normal-bindings* (make-trie))
@@ -33,6 +32,7 @@
 (defun command-mode ()
   "enter command mode"
   (setf (jim-editor:editor-cmd *editor*) nil) ;TODO: add to api
+  (setf (jim-editor:editor-cmdcur *editor*) 1) ;TODO: add to api
   (set-mode :cmd))
 
 (defmacro bind-normal ((&rest keys) &rest body)

@@ -119,8 +119,10 @@
   (when (is-dirty edit :cmd)
     (draw-command (editor-cmd edit) (editor-mode edit)))
 
-  (move-to (+ 1 (cursor-col (editor-cur edit)))
-           (+ 2 (cursor-line (editor-cur edit))))
+    (if (editor-cmdcur edit)
+      (move-to (1+ (editor-cmdcur edit)) (term-height))
+      (move-to (+ 1 (cursor-col (editor-cur edit)))
+               (+ 2 (cursor-line (editor-cur edit)))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
 
