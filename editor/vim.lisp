@@ -83,7 +83,8 @@
   (normal-mode))
 
 (bind-insert ('*)
-  (jim-editor:add-char jim-editor:*editor* *last-key*))
+  (when (char>= *last-key* #\ )
+    (jim-editor:add-char jim-editor:*editor* *last-key*)))
 
 (bind-insert (#\rubout)
   (jim-editor:backspace jim-editor:*editor*))
