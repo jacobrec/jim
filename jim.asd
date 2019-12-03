@@ -13,7 +13,9 @@
                 ((:file "utils")
                  (:file "editor" :depends-on ("utils"))
                  (:file "draw" :depends-on ("utils" "editor"))
+                 (:file "api")
                  (:file "vim")
+                 (:file "jim-user")
                  (:file "main" :depends-on ("utils" "draw" "editor")))))
   :description "A pretty bad vi like editor"
   :build-operation program-op
