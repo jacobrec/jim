@@ -51,6 +51,19 @@
 (bind-normal ("i")
   (insert-mode))
 
+(bind-normal ("I")
+  (jim-editor:move-cursor-col jim-editor:*editor* -1000000)
+  (insert-mode))
+
+
+(bind-normal ("a")
+  (jim-editor:move-cursor-col jim-editor:*editor* 1)
+  (insert-mode))
+
+(bind-normal ("A")
+  (jim-editor:move-cursor-col jim-editor:*editor* 1000000)
+  (insert-mode))
+
 (bind-normal ("h")
   (jim-editor:move-cursor-col jim-editor:*editor* -1))
 
