@@ -31,7 +31,7 @@
   (jim-editor:set-mode jim-editor:*editor* :insert))
 
 (defun command-mode ()
-  "enter insert mode"
+  "enter command mode"
   (setf (jim-editor:editor-cmd jim-editor:*editor*) nil)
   (jim-editor:set-mode jim-editor:*editor* :cmd))
 
