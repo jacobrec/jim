@@ -128,7 +128,8 @@
                     (- (or (jbrope:next rope (cursor-index cur) '(#\newline))
                            (jbrope:rope-len rope))
                        (or (jbrope:prev rope (cursor-index cur) '(#\newline)) -1)))
-              (move-cols edit c wrap)))
+              (decf (cursor-col cur) 2)
+              (move-cols edit (1+ c) wrap)))
            ((< c 0)
             ;; Backwards no line end
             (decf (cursor-index cur))
