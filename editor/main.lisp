@@ -35,12 +35,12 @@
        ((char= #\i ch) (set-mode edit :insert))
        ((char= #\b ch) (slide-cursor edit 1)) ;; TODO: remove. For testing only
        ((char= #\v ch) (slide-cursor edit -1)) ;; TODO: remove. For testing only
-       ((char= #\h ch) (move-cursor edit 0 -1))
-       ((char= #\j ch) (move-cursor edit 1 0))
-       ((char= #\k ch) (move-cursor edit -1 0))
-       ((char= #\l ch) (move-cursor edit 0 1))
-       ((char= #\0 ch) (move-cursor edit 0 -1000000))
-       ((char= #\$ ch) (move-cursor edit 0 1000000))
+       ((char= #\h ch) (move-cursor-col edit -1))
+       ((char= #\j ch) (move-cursor-row edit 1))
+       ((char= #\k ch) (move-cursor-row edit -1))
+       ((char= #\l ch) (move-cursor-col edit 1))
+       ((char= #\0 ch) (move-cursor-col edit -1000000))
+       ((char= #\$ ch) (move-cursor-col edit 1000000))
        ((char= #\x ch) (delete-from edit
                                    (editor-index edit)
                                    (1+ (editor-index edit)))

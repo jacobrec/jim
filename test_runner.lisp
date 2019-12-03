@@ -5,3 +5,6 @@
 
 (asdf:load-system :jim.bindings)
 (prove:run :jim.bindings/test)
+
+(asdf:load-system :jim)
+(prove:run :jim/test)

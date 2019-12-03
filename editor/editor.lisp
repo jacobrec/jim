@@ -16,7 +16,8 @@
            undo
            delete-from
 
-           move-cursor
+           move-cursor-row
+           move-cursor-col
            slide-cursor
            active-cursor-index))
 
@@ -88,56 +89,74 @@
 
 ;; TODO: cursor movements are really ineffecient
 (defun slide-cursor (edit amount)
-  (move edit 0 amount t))
+  (move-cols edit amount t))
+(defun move-cursor-col (edit amount)
+  (move-cols edit amount nil))
+(defun move-cursor-row (edit amount)
+  (let ((c (cursor-col (editor-cur edit))))
+    (move-rows edit amount)
+    (move-cols edit c nil)))
 
-(defun move-cursor (edit r c)
-  (move edit r c nil))
+(defun move-cols (edit c wrap)
+  (let* ((cur (editor-cur edit))
+         (i (cursor-index cur))
+         (rope (editor-rope edit)))
+    (cond  ((and (> c 0) (char= #\newline (jbrope:rope-ref rope (1+ i))))
+            ;; Forward hits line end
+            (when wrap
+              (incf (cursor-index cur) 2)
+              (incf (cursor-line cur))
+              (setf (cursor-col cur) 0)
+              (move-cols edit (1- c) wrap)))
+           ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope)))
+            ;; Forward no line end
+            (incf (cursor-index cur))
+            (incf (cursor-col cur))
+            (move-cols edit (1- c) wrap))
+           ((and (< c 0) (or (= i 0)
+                             (char= #\newline (jbrope:rope-ref rope (1- i)))))
+            ;; Backwards line end
+            (when (and wrap (> (cursor-line cur) 0))
+              (decf (cursor-index cur) 2)
+              (decf (cursor-line cur))
+              (setf (cursor-col cur)
+                    (- (or (jbrope:next rope (cursor-index cur) '(#\newline))
+                           (jbrope:rope-len rope))
+                       (or (jbrope:prev rope (cursor-index cur) '(#\newline)) -1)))
+              (move-cols edit (1+ c) wrap)))
+           ((< c 0)
+            ;; Backwards no line end
+            (decf (cursor-index cur))
+            (decf (cursor-col cur))
+            (move-cols edit (1+ c) wrap)))))
 
-(defun move (edit r c wrap)
-  (let ((cur (editor-cur edit)))
-    (cond ((and (= 0 r) (< c 0) (>= (+ (cursor-col cur) c) 0))
-           ;; Moving left and will not underflow column
-           (incf (cursor-index (editor-cur edit)) c)
-           (incf (cursor-col (editor-cur edit)) c))
-          ((and (= 0 r) (< c 0))
-           ;; Moving left and will underflow column
-           (when wrap
-            (when (> (cursor-line cur) 0)
-              (incf (cursor-line (editor-cur edit)) -1)
-              (let* ((eol (jbrope:prev (editor-rope edit)
-                                       (1+ (cursor-index cur)) '(#\newline)))
-                     (sol (jbrope:prev (editor-rope edit)
-                                       (or eol 0) '(#\newline))))
-                (setf (cursor-col (editor-cur edit)) (- (or eol 0) (or sol 0))))
-              (incf (cursor-index (editor-cur edit)) -1))))
-          ((and (= 0 r) (> c 0) (not (char= (jbrope:rope-ref
-                                               (editor-rope edit)
-                                               (cursor-index cur))
-                                            #\newline))
-                                (> (jbrope:rope-len (editor-rope edit))
-                                   (1+ (cursor-index cur))))
-           ;; Moving right, and will not overflow column
-           (incf (cursor-index (editor-cur edit)) 1)
-           (incf (cursor-col (editor-cur edit)) 1)
-           (move edit r (- c 1) wrap))
-          ((and (= 0 r) (> c 0) (> (jbrope:rope-len (editor-rope edit))
-                                   (1+ (cursor-index cur))))
-           ;; Moving right, and will overflow column
-           (when wrap
-            (incf (cursor-line (editor-cur edit)) 1)
-            (setf (cursor-col (editor-cur edit)) 0)
-            (incf (cursor-index (editor-cur edit)) 1)))
-          ((and (= c 0) (> r 0))
-           ;; moving down
-           (let* ((sol (jbrope:next (editor-rope edit)
-                                    (cursor-index cur) '(#\newline)))
-                  (eol (jbrope:next (editor-rope edit)
-                                    (or sol 0) '(#\newline))))
-             (when sol
-               (incf (cursor-line cur) 1)
-               (let ((new-col
-                       (min (cursor-col cur)
-                            (- (or eol (jbrope:rope-len (editor-rope edit))) sol))))
-                 (incf (cursor-index cur) (+ (- (cursor-col cur) sol) new-col))
-                 (setf (cursor-col cur) new-col))))))))
+(defun move-rows (edit r)
+  (let* ((cur (editor-cur edit))
+         (i (cursor-index cur))
+         (rope (editor-rope edit)))
+    (when (> r 0)
+      ; moving down (incrementing row)
+      (decf r 1)
+      (decf (cursor-index cur) (cursor-col cur))
+      (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
+        (if eol
+          (setf (cursor-index cur) eol)
+          (setf (cursor-index cur) (1- (jbrope:rope-len rope)))))
+      (incf (cursor-index cur))
+      (setf (cursor-col cur) 0)
+      (incf (cursor-line cur))
+      (move-rows edit r))
+    (when (and (< 0 (cursor-line cur)) (> 0 r))
+      ; moving up (decrementing row)
+      (incf r 1)
+      (let* ((loc (or (jbrope:prev rope
+                            (or (jbrope:prev rope i '(#\newline)) 0)
+                           '(#\newline)) 0))
+             (dif (- i loc)))
+        (decf (cursor-index cur) dif)
+        (unless (= 0 loc)
+          (incf (cursor-index cur)))
+        (setf (cursor-col cur) 0)
+        (decf (cursor-line cur)))
+      (move-rows edit r))))
 

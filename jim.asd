@@ -18,3 +18,12 @@
   :build-operation program-op
   :build-pathname "jim"
   :entry-point "jim-app:run-app")
+
+(defsystem jim/test
+  :defsystem-depends-on (:prove-asdf)
+  :depends-on (:jim :prove)
+  :components ((:module "editor"
+                :components
+                ((:test-file "movement_test"))))
+  :perform (test-op :after (op c)
+                    (funcall (intern #.(string :run) :prove) c)))

@@ -1,0 +1,93 @@
+(defpackage editor-movement-test
+  (:use :cl :prove :jim-utils :jim-editor))
+(in-package :editor-movement-test)
+
+(defun fake-editor (contents)
+  (let ((e (new-editor nil)))
+    (setf (jim-editor::editor-tabs e)
+          (list (jim-editor::make-tab
+                 :buffer (jbedit::make-buffer
+                           :stack (jbrope:str-to-rope contents)
+                           :redo nil
+                           :dirty nil
+                           :fname "tmp")
+                 :cur (make-cursor :index 0 :line 0 :col 0))))
+    e))
+
+(defmacro index (e)
+  `(cursor-index (editor-cur ,e)))
+(defmacro row (e)
+  `(cursor-line (editor-cur ,e)))
+(defmacro col (e)
+  `(cursor-col (editor-cur ,e)))
+(defun reset-cur (e)
+  (setf (index e) 0)
+  (setf (row e) 0)
+  (setf (col e) 0))
+
+(plan nil)
+
+(let ((e (fake-editor (format nil "hi~%hello~%hi~%"))))
+  (diag "move right and left")
+  (move-cursor-col e 100)
+  (move-cursor-col e 100)
+  (move-cursor-col e 100)
+  (is (row e) 0)
+  (is (col e) 1)
+  (is (index e) 1)
+  (move-cursor-col e -1)
+  (move-cursor-col e -1)
+  (move-cursor-col e -1)
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0)
+  (move-cursor-col e -3)
+  (move-cursor-col e -3)
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0)
+  (move-cursor-col e 1)
+  (move-cursor-col e -3)
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0)
+
+  (diag "move right then down")
+  (reset-cur e)
+  (move-cursor-row e 1)
+  (move-cursor-col e 1)
+  (is (index e) 4)
+  (move-cursor-col e 1)
+  (is (row e) 1)
+  (is (col e) 2)
+  (is (index e) 5)
+  (move-cursor-row e 1)
+  (is (row e) 2)
+  (is (col e) 1)
+  (is (index e) 10)
+
+  (diag "slide up and down")
+  (reset-cur e)
+  (loop as i from 1 to 10 do
+    (slide-cursor e 1))
+  (is (row e) 2)
+  (is (col e) 1)
+  (is (index e) 10)
+  (loop as i from 1 to 10 do
+    (slide-cursor e -1))
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0)
+
+  (diag "slide loop")
+  (loop as i from 1 to 100 do
+    (move-cursor-col e 1)
+    (slide-cursor e -1)
+    (slide-cursor e -1)
+    (slide-cursor e -1))
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0))
+
+
+(finalize)
