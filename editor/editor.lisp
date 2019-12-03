@@ -99,7 +99,7 @@
 (defun open-new-tab (edit filename)
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
-;; TODO: cursor movements are really ineffecient
+;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount)
   (move-cols edit amount t))
 (defun move-cursor-col (edit amount)
@@ -153,10 +153,13 @@
       ; moving down (incrementing row)
       (decf r 1)
       (decf (cursor-index cur) (cursor-col cur))
+      (when (char= #\newline (jbrope:rope-ref rope (cursor-index cur)))
+        (decf (cursor-index cur)))
       (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
         (when eol
-          (setf (cursor-index cur) eol)
-          (incf (cursor-index cur))
+          (let ((i (cursor-index cur)))
+            (setf (cursor-index cur) eol)
+            (incf (cursor-index cur)))
           (setf (cursor-col cur) 0)
           (incf (cursor-line cur))
           (move-rows edit r))))
