@@ -11,6 +11,7 @@
            editor-tabs
            editor-selected-tab
            tab-name
+           tab-dirty
 
            insert
            undo
@@ -30,6 +31,8 @@
 
 (defun tab-name (tab)
  (jbedit:buffer-fname (tab-buffer tab)))
+(defun tab-dirty (tab)
+ (jbedit::buffer-dirty (tab-buffer tab)))
 
 ; contains the entire editor
 (defstruct editor
@@ -101,13 +104,15 @@
   (let* ((cur (editor-cur edit))
          (i (cursor-index cur))
          (rope (editor-rope edit)))
-    (cond  ((and (> c 0) (char= #\newline (jbrope:rope-ref rope (1+ i))))
+    (cond  ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope))
+                 (char= #\newline (jbrope:rope-ref rope (1+ i))))
             ;; Forward hits line end
             (when wrap
-              (incf (cursor-index cur) 2)
-              (incf (cursor-line cur))
-              (setf (cursor-col cur) 0)
-              (move-cols edit (1- c) wrap)))
+              (unless (= (+ (cursor-index cur) 2) (jbrope:rope-len rope))
+                (incf (cursor-index cur) 2)
+                (incf (cursor-line cur))
+                (setf (cursor-col cur) 0)
+                (move-cols edit (1- c) wrap))))
            ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope)))
             ;; Forward no line end
             (incf (cursor-index cur))
@@ -123,7 +128,7 @@
                     (- (or (jbrope:next rope (cursor-index cur) '(#\newline))
                            (jbrope:rope-len rope))
                        (or (jbrope:prev rope (cursor-index cur) '(#\newline)) -1)))
-              (move-cols edit (1+ c) wrap)))
+              (move-cols edit c wrap)))
            ((< c 0)
             ;; Backwards no line end
             (decf (cursor-index cur))
@@ -139,13 +144,12 @@
       (decf r 1)
       (decf (cursor-index cur) (cursor-col cur))
       (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
-        (if eol
+        (when eol
           (setf (cursor-index cur) eol)
-          (setf (cursor-index cur) (1- (jbrope:rope-len rope)))))
-      (incf (cursor-index cur))
-      (setf (cursor-col cur) 0)
-      (incf (cursor-line cur))
-      (move-rows edit r))
+          (incf (cursor-index cur))
+          (setf (cursor-col cur) 0)
+          (incf (cursor-line cur))
+          (move-rows edit r))))
     (when (and (< 0 (cursor-line cur)) (> 0 r))
       ; moving up (decrementing row)
       (incf r 1)

@@ -42,7 +42,7 @@
         (format t "|"))
       (when (= selected c)
         (command 1 4 #\m)); Set underline
-      (format t " ~a " (tab-name x))
+      (format t " ~a~a " (tab-name x) (if (tab-dirty x) "*" ""))
       (command 0 #\m); Reset all styles
       (set-color YEL 'fg 'bright)
       (set-color BLK 'bg 'bright)
