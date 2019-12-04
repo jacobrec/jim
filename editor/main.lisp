@@ -11,10 +11,11 @@
   (stty '("raw"))
   (jim-utils:command "?1049" #\h)
   (vim:use-vim-bindings)
-  (let ((*editor* (new-editor nil)))
+  (jim-user-util:load-jimrc)
+  (let ((jim.api:*editor* (new-editor nil)))
     (loop while *running* do
-      (jim-io:draw-screen *editor*)
-      (do-input *editor* (read-char))))
+      (jim-io:draw-screen jim.api:*editor*)
+      (do-input jim.api:*editor* (read-char))))
   (jim-utils:command "?1049" #\l)
   (stty '("sane")))
 

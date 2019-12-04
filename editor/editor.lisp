@@ -1,7 +1,6 @@
 (defpackage :jim-editor
   (:use :common-lisp :jim-utils)
-  (:export *editor*
-           open-new-tab
+  (:export open-new-tab
            new-editor
            editor-buffer
            editor-cur
@@ -22,16 +21,12 @@
            move-cursor-col
            slide-cursor
            active-cursor-index
+           cursor-index
 
-           add-char
            set-dirty
-           set-mode
-           backspace))
+           set-mode))
 
 (in-package :jim-editor)
-
-; the global editor state
-(defvar *editor*)
 
 ; an individual tab
 (defstruct tab
@@ -76,7 +71,6 @@
 (defun editor-index (edit)
   (cursor-index (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit)))))
 
-
 ;; Edit functionalities
 (defun delete-from (edit start end)
   (set-editor-buffer edit (jbedit:del-from (editor-buffer edit)
@@ -88,7 +82,6 @@
 
 (defun insert (edit str loc)
   (set-editor-buffer edit (jbedit:insert (editor-buffer edit) str loc)))
-
 
 ;; tab manipualtion
 (defun open-tab (filename)
@@ -177,13 +170,6 @@
         (decf (cursor-line cur)))
       (move-rows edit r))))
 
-(defun add-char (edit ch)
-  (insert edit (make-string 1 :initial-element ch)
-               (cursor-index (editor-cur edit)))
-  (slide-cursor edit 1)
-  (set-dirty edit :buffer))
-
-
 (defun set-dirty (edit place)
   (setf (editor-redraw edit) (cons place (editor-redraw edit))))
 
@@ -192,7 +178,3 @@
   (set-dirty edit :cmd)
   (setf (editor-mode edit) mode))
 
-(defun backspace (edit)
-  (delete-from edit (1- (editor-index edit)) (editor-index edit))
-  (slide-cursor edit -1)
-  (set-dirty edit :buffer))

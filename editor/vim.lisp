@@ -1,7 +1,7 @@
 ;;;; jim's default lisp bindings
 (defpackage :jim.vim
   (:nicknames vim)
-  (:use :cl :jim.bindings)
+  (:use :cl :jim.bindings :jim.api)
   (:export
     use-vim-bindings
     normal-mode
@@ -23,18 +23,17 @@
 (defun normal-mode ()
   "enter normal mode"
   (setf *key-bindings* *normal-bindings*)
-  (jim-editor:set-mode jim-editor:*editor* :normal))
+  (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
   (setf *key-bindings* *insert-bindings*)
-  (jim-editor:set-mode jim-editor:*editor* :insert))
+  (set-mode :insert))
 
 (defun command-mode ()
   "enter command mode"
-  (setf (jim-editor:editor-cmd jim-editor:*editor*) nil)
-  (jim-editor:set-mode jim-editor:*editor* :cmd))
-
+  (setf (jim-editor:editor-cmd *editor*) nil) ;TODO: add to api
+  (set-mode :cmd))
 
 (defmacro bind-normal ((&rest keys) &rest body)
   `(let ((*key-bindings* *normal-bindings*))
@@ -52,41 +51,38 @@
   (insert-mode))
 
 (bind-normal ("h")
-  (jim-editor:move-cursor-col jim-editor:*editor* -1))
+  (cursor-left))
 
 (bind-normal ("j")
-  (jim-editor:move-cursor-row jim-editor:*editor* 1))
+  (cursor-down))
 
 (bind-normal ("k")
-  (jim-editor:move-cursor-row jim-editor:*editor* -1))
+  (cursor-up))
 
 (bind-normal ("l")
-  (jim-editor:move-cursor-col jim-editor:*editor* 1))
+  (cursor-right))
 
 (bind-normal ("0")
-  (jim-editor:move-cursor-col jim-editor:*editor* -1000000))
+  (cursor->line-start))
 
 (bind-normal ("$")
-  (jim-editor:move-cursor-col jim-editor:*editor* 1000000))
+  (cursor->line-end))
 
 (bind-normal ("x")
-  (jim-editor:delete-from jim-editor:*editor* (jim-editor:editor-index jim-editor:*editor*)
-               (1+ (jim-editor:editor-index jim-editor:*editor*)))
-  (jim-editor:set-dirty jim-editor:*editor* :buffer))
+  (del))
 
 (bind-normal ("u")
-  (jim-editor:undo jim-editor:*editor* 1)
-  (jim-editor:set-dirty jim-editor:*editor* :buffer))
+  (undo))
 
 ;;; insert mode bindings
 (bind-insert (<C-c>)
   (normal-mode))
 
 (bind-insert ('*)
-  (jim-editor:add-char jim-editor:*editor* *last-key*))
+  (insert-char *last-key*))
 
 (bind-insert (#\rubout)
-  (jim-editor:backspace jim-editor:*editor*))
+  (backspace))
 
 (bind-insert (#\return)
-  (jim-editor:add-char jim-editor:*editor* #\newline))
+  (enter))
