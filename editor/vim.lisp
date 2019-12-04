@@ -7,7 +7,8 @@
     normal-mode
     insert-mode
     bind-normal
-    bind-insert))
+    bind-insert
+    defcmd))
 
 (in-package :jim.vim)
 
@@ -154,10 +155,39 @@
   (normal-mode))
 
 (bind-command (#\rubout)
-  (when (> (length (cmd)) 1)
-    (vector-pop (cmd))
-    (flush-cmd)
-    (set-cmd-cur (1- (cmd-cur)))))
+  (if (> (length (cmd)) 1)
+    (progn
+      (vector-pop (cmd))
+      (flush-cmd)
+      (set-cmd-cur (1- (cmd-cur))))
+    (progn
+      (set-cmd-cur nil)
+      (set-cmd "")
+      (normal-mode))))
 
 (bind-command (#\return)
+  (eval
+    (read-from-string
+      (concatenate 'string
+                   "( vim-cmd:"
+                   (string-trim '(#\space #\return #\linefeed)
+                                (cmd))
+                   ")")))
+  (set-cmd-cur nil)
+  (set-cmd "")
+  (normal-mode))
+
+(defpackage :vim-cmd
+  (:use :cl :vim :jim.api))
+
+(defmacro defcmd (name &rest args)
+  `(let ((old-pkg *package*)
+         (old-rtable *readtable*))
+     (in-package :vim-cmd)
+     (defun ,(intern (symbol-name name) :vim-cmd) ,@args)
+     (export ',(intern (symbol-name name) :vim-cmd))
+     (setf *package* old-pkg)
+     (setf *readtable* old-rtable)))
+
+(defcmd q ()
   (exit-jim))

@@ -20,11 +20,3 @@
 (defun do-input (edit ch)
   (set-dirty edit :status)
   (jim.bindings:do-keypress ch))
-
-(defun do-command (edit)
-  (let ((cmd (string-trim '(#\space #\return #\linefeed)
-                          (concatenate
-                            'string
-                            (reverse (editor-cmd edit))))))
-    (cond
-      ((string= "q" cmd) (jim.api:exit-jim)))))
