@@ -100,9 +100,11 @@
 (defun move-cursor-col (edit amount)
   (move-cols edit amount nil))
 (defun move-cursor-row (edit amount)
-  (let ((c (cursor-col (editor-cur edit))))
+  (let ((c (cursor-col (editor-cur edit)))
+        (c-row (cursor-line (editor-cur edit))))
     (move-rows edit amount)
-    (move-cols edit c nil)))
+    (unless (= c-row (cursor-line (editor-cur edit)))
+      (move-cols edit c nil))))
 
 (defun move-cols (edit c wrap)
   (let* ((cur (editor-cur edit))
