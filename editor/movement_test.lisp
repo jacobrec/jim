@@ -125,4 +125,15 @@
   (is (col e) 0)
   (is (index e) 2))
 
+(let ((e (fake-editor (format nil "~%~%~%hihellohi~%"))))
+  (diag "up movement")
+  (is (row e) 0)
+  (is (col e) 0)
+  (is (index e) 0)
+  (move-cursor-col e 1)
+  (move-cursor-row e -1)
+  (is (row e) 0)
+  (is (col e) 1)
+  (is (index e) 0))
+
 (finalize)
