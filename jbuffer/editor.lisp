@@ -38,10 +38,13 @@
 
 
 (defun fname-to-string (fname)
-  (with-open-file (strm fname)
-    (let ((contents (make-string (file-length strm))))
-      (read-sequence contents strm)
-      contents)))
+  (with-open-file (strm fname
+                     :if-does-not-exist nil)
+    (if strm
+      (let ((contents (make-string (file-length strm))))
+        (read-sequence contents strm)
+        contents)
+      "")))
 
 
 (defun open-buff (fname)
