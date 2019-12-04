@@ -137,7 +137,8 @@
   (set-cmd-cur *prompt-len*)
   (setf *old-bindings* *key-bindings*)
   (setf *key-bindings* *prompt-bindings*)
-  (setf *prompt-callback* fn))
+  (setf *prompt-callback* fn)
+  (setf *prompt-cancel* cancel))
 
 (defmacro bind-prompt ((&rest keys) &rest body)
   `(let ((*key-bindings* *prompt-bindings*))
