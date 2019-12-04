@@ -5,6 +5,7 @@
            editor-buffer
            editor-cur
            editor-cmd
+           editor-cmdcur
            editor-index
            editor-redraw
            editor-mode
@@ -44,7 +45,8 @@
   selected-tab
   tabs
   redraw
-  cmd)
+  cmd
+  cmdcur)
 
 (defun new-editor (files)
   (make-editor

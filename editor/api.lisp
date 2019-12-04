@@ -1,11 +1,13 @@
 ;;;; jim's api for keybindings an configuration
 (defpackage :jim.api
   (:nicknames api)
-  (:use :cl)
+  (:use :cl :jim.bindings)
   (:export
     *editor*
     set-mode
     undo
+    exit-jim
+    is-running
     cursor-left
     cursor-right
     cursor-up
@@ -16,7 +18,13 @@
     backspace
     enter
     insert
-    insert-char))
+    insert-char
+    set-cmd-cur
+    cmd-cur
+    set-cmd
+    flush-cmd
+    cmd
+    prompt))
 
 (in-package :jim.api)
 
@@ -31,6 +39,14 @@
 (defun undo ()
   (jim-editor:undo *editor* 1)
   (jim-editor:set-dirty *editor* :buffer))
+
+(defvar running t)
+
+(defun exit-jim ()
+  (setf running nil))
+
+(defun is-running ()
+  running)
 
 ;; cursor
 
@@ -78,3 +94,84 @@
 
 (defun enter ()
   (insert-char #\newline))
+
+;; command line
+
+(defun set-cmd-cur (n)
+  "sets the command cursor, if (null n) then the regular cursor will be drawn"
+  (setf (jim-editor:editor-cmdcur *editor*) n))
+
+(defun cmd-cur ()
+  (jim-editor:editor-cmdcur *editor*))
+
+(defun set-cmd (str)
+  (setf (jim-editor:editor-cmd *editor*) str)
+  (jim-editor:set-dirty *editor* :cmd))
+
+(defun flush-cmd ()
+  (jim-editor:set-dirty *editor* :cmd))
+
+(defun cmd ()
+  (jim-editor:editor-cmd *editor*))
+
+;; prompt api -- a higher level command interface
+
+(defun make-adjustable-string (s)
+  (make-array (length s)
+              :fill-pointer (length s)
+              :adjustable t
+              :initial-contents s
+              :element-type (array-element-type s)))
+
+(defvar *prompt-bindings* (make-trie))
+(defvar *old-bindings*)
+(defvar *prompt-len*)
+(defvar *prompt-callback*)
+(defvar *prompt-cancel*)
+
+(defun prompt (pr fn cancel)
+  "prompt with pr and callback to fn with the entered command
+   restores bindings when run or canceled"
+  (setf *prompt-len* (length pr))
+  (set-cmd (make-adjustable-string pr))
+  (set-cmd-cur *prompt-len*)
+  (setf *old-bindings* *key-bindings*)
+  (setf *key-bindings* *prompt-bindings*)
+  (setf *prompt-callback* fn)
+  (setf *prompt-cancel* cancel))
+
+(defmacro bind-prompt ((&rest keys) &rest body)
+  `(let ((*key-bindings* *prompt-bindings*))
+    (bind (,@keys) ,@body)))
+
+(bind-prompt ('*)
+  (when (char>= *last-key* #\ )
+    (vector-push-extend *last-key* (cmd))
+    (flush-cmd)
+    (set-cmd-cur (1+ (cmd-cur)))))
+
+(bind-prompt (<C-c>)
+  (set-cmd-cur nil)
+  (set-cmd "")
+  (setf *key-bindings* *old-bindings*)
+  (funcall *prompt-cancel*))
+
+(bind-prompt (#\rubout)
+  (if (> (length (cmd)) *prompt-len*)
+    (progn
+      (vector-pop (cmd))
+      (flush-cmd)
+      (set-cmd-cur (1- (cmd-cur))))
+    (progn
+      (set-cmd-cur nil)
+      (set-cmd "")
+      (setf *key-bindings* *old-bindings*)
+      (funcall *prompt-cancel*))))
+
+(bind-prompt (#\return)
+  (let ((str (string-trim '(#\space #\return #\linefeed)
+                          (subseq (cmd) *prompt-len*))))
+    (set-cmd-cur nil)
+    (set-cmd "")
+    (setf *key-bindings* *old-bindings*)
+    (funcall *prompt-callback* str)))

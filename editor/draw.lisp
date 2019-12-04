@@ -74,9 +74,8 @@
 (defun draw-command (cmd mode)
   (move-to 1 (term-height))
   (draw-blank-line)
-  (when (equal :cmd mode)
-    (move-to 1 (term-height))
-    (format t ":~a" (concatenate 'string (reverse cmd)))))
+  (move-to 1 (term-height))
+  (format t "~a" cmd))
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)
@@ -119,8 +118,10 @@
   (when (is-dirty edit :cmd)
     (draw-command (editor-cmd edit) (editor-mode edit)))
 
-  (move-to (+ 1 (cursor-col (editor-cur edit)))
-           (+ 2 (cursor-line (editor-cur edit))))
+    (if (editor-cmdcur edit)
+      (move-to (1+ (editor-cmdcur edit)) (term-height))
+      (move-to (+ 1 (cursor-col (editor-cur edit)))
+               (+ 2 (cursor-line (editor-cur edit)))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
 
