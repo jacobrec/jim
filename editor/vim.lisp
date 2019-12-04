@@ -13,7 +13,7 @@
 
 (defvar *normal-bindings* (make-trie))
 (defvar *insert-bindings* (make-trie))
-(defvar *commmand-bindings* (make-trie))
+(defvar *command-bindings* (make-trie))
 
 (defun use-vim-bindings ()
   "sets the global editor bindings to the vim ones"
@@ -29,10 +29,18 @@
   (setf *key-bindings* *insert-bindings*)
   (set-mode :insert))
 
+(defun make-adjustable-string (s)
+  (make-array (length s)
+              :fill-pointer (length s)
+              :adjustable t
+              :initial-contents s
+              :element-type (array-element-type s)))
+
 (defun command-mode ()
   "enter command mode"
-  (setf (jim-editor:editor-cmd *editor*) nil) ;TODO: add to api
-  (setf (jim-editor:editor-cmdcur *editor*) 1) ;TODO: add to api
+  (set-cmd (make-adjustable-string ":"))
+  (set-cmd-cur 1)
+  (setf *key-bindings* *command-bindings*)
   (set-mode :cmd))
 
 (defmacro bind-normal ((&rest keys) &rest body)
@@ -41,6 +49,10 @@
 
 (defmacro bind-insert ((&rest keys) &rest body)
   `(let ((*key-bindings* *insert-bindings*))
+    (bind (,@keys) ,@body)))
+
+(defmacro bind-command ((&rest keys) &rest body)
+  `(let ((*key-bindings* *command-bindings*))
     (bind (,@keys) ,@body)))
 
 ;;; normal mode bindings
@@ -128,3 +140,24 @@
 
 (vim:bind-insert (<Right>)
   (cursor-right))
+
+;;; command mode bindings
+(bind-command ('*)
+  (when (char>= *last-key* #\ )
+    (vector-push-extend *last-key* (cmd))
+    (flush-cmd)
+    (set-cmd-cur (1+ (cmd-cur)))))
+
+(bind-command (<C-c>)
+  (set-cmd-cur nil)
+  (set-cmd "")
+  (normal-mode))
+
+(bind-command (#\rubout)
+  (when (> (length (cmd)) 1)
+    (vector-pop (cmd))
+    (flush-cmd)
+    (set-cmd-cur (1- (cmd-cur)))))
+
+(bind-command (#\return)
+  (exit-jim))

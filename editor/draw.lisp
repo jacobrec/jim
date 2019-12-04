@@ -74,9 +74,8 @@
 (defun draw-command (cmd mode)
   (move-to 1 (term-height))
   (draw-blank-line)
-  (when (equal :cmd mode)
-    (move-to 1 (term-height))
-    (format t ":~a" (concatenate 'string (reverse cmd)))))
+  (move-to 1 (term-height))
+  (format t "~a" cmd))
 
 (defun draw-buffer (rbuf)
   (move-to 1 2)

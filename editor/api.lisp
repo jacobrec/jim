@@ -6,6 +6,8 @@
     *editor*
     set-mode
     undo
+    exit-jim
+    is-running
     cursor-left
     cursor-right
     cursor-up
@@ -16,7 +18,12 @@
     backspace
     enter
     insert
-    insert-char))
+    insert-char
+    set-cmd-cur
+    cmd-cur
+    set-cmd
+    flush-cmd
+    cmd))
 
 (in-package :jim.api)
 
@@ -31,6 +38,14 @@
 (defun undo ()
   (jim-editor:undo *editor* 1)
   (jim-editor:set-dirty *editor* :buffer))
+
+(defvar running t)
+
+(defun exit-jim ()
+  (setf running nil))
+
+(defun is-running ()
+  running)
 
 ;; cursor
 
@@ -78,3 +93,22 @@
 
 (defun enter ()
   (insert-char #\newline))
+
+;; command line
+
+(defun set-cmd-cur (n)
+  "sets the command cursor, if (null n) then the regular cursor will be drawn"
+  (setf (jim-editor:editor-cmdcur *editor*) n))
+
+(defun cmd-cur ()
+  (jim-editor:editor-cmdcur *editor*))
+
+(defun set-cmd (str)
+  (setf (jim-editor:editor-cmd *editor*) str)
+  (jim-editor:set-dirty *editor* :cmd))
+
+(defun flush-cmd ()
+  (jim-editor:set-dirty *editor* :cmd))
+
+(defun cmd ()
+  (jim-editor:editor-cmd *editor*))
