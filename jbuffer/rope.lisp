@@ -188,6 +188,7 @@
                              (setf val (make-extendable-string)))
                             (t (vector-push-extend ch val))))
                0 -1)
-      (when (in-bounds line)
-        (funcall fn val)))))
+      (when (> (length val) 0)
+        (when (in-bounds line)
+          (funcall fn val))))))
 
