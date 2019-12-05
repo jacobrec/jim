@@ -149,7 +149,7 @@
   (set-cmd (make-adjustable-string pr))
   (set-cmd-cur *prompt-len*)
   (setf *old-bindings* *key-bindings*)
-  (setf *key-bindings* *prompt-bindings*)
+  (set-key-bindings *prompt-bindings*)
   (setf *prompt-callback* fn)
   (setf *prompt-cancel* cancel))
 
@@ -166,7 +166,7 @@
 (bind-prompt (<C-c>)
   (set-cmd-cur nil)
   (set-cmd "")
-  (setf *key-bindings* *old-bindings*)
+  (set-key-bindings *old-bindings*)
   (funcall *prompt-cancel*))
 
 (bind-prompt (#\rubout)
@@ -178,7 +178,7 @@
     (progn
       (set-cmd-cur nil)
       (set-cmd "")
-      (setf *key-bindings* *old-bindings*)
+      (set-key-bindings *old-bindings*)
       (funcall *prompt-cancel*))))
 
 (bind-prompt (#\return)
@@ -186,5 +186,5 @@
                           (subseq (cmd) *prompt-len*))))
     (set-cmd-cur nil)
     (set-cmd "")
-    (setf *key-bindings* *old-bindings*)
+    (set-key-bindings *old-bindings*)
     (funcall *prompt-callback* str)))

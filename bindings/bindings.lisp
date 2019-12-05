@@ -4,6 +4,7 @@
     *key-bindings*
     *key-state*
     *last-key*
+    set-key-bindings
     fbind
     unbind
     do-keypress
@@ -14,6 +15,10 @@
 (defvar *key-bindings* (make-trie))
 (defvar *key-state* *key-bindings*)
 (defvar *last-key*)
+
+(defun set-key-bindings (bindings)
+  (setf *key-bindings* bindings)
+  (setf *key-state* *key-bindings*))
 
 (defun fbind (seq fun)
   "binds seq to apply fun when pressed"
@@ -37,4 +42,3 @@
        (let ((*last-key* ch)) (funcall next-state))
        (setf *key-state* *key-bindings*))
       (t (setf *key-state* next-state)))))
-
