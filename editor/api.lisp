@@ -6,6 +6,9 @@
     *editor*
     set-mode
     undo
+    current-buffer
+    write-buffer
+    buffer-dirty
     exit-jim
     is-running
     cursor-left
@@ -39,6 +42,16 @@
 (defun undo ()
   (jim-editor:undo *editor* 1)
   (jim-editor:set-dirty *editor* :buffer))
+
+(defun current-buffer ()
+  (jim-editor:editor-buffer *editor*))
+
+(defun write-buffer (&key (buff (current-buffer)) name)
+  ; TODO: write different buffers
+  (jim-editor:write-buff *editor* name))
+
+(defun buffer-dirty (&optional (buff (current-buffer)))
+  (jbedit:buffer-dirty buff))
 
 (defvar running t)
 
@@ -136,7 +149,7 @@
   (set-cmd (make-adjustable-string pr))
   (set-cmd-cur *prompt-len*)
   (setf *old-bindings* *key-bindings*)
-  (setf *key-bindings* *prompt-bindings*)
+  (set-key-bindings *prompt-bindings*)
   (setf *prompt-callback* fn)
   (setf *prompt-cancel* cancel))
 
@@ -153,7 +166,7 @@
 (bind-prompt (<C-c>)
   (set-cmd-cur nil)
   (set-cmd "")
-  (setf *key-bindings* *old-bindings*)
+  (set-key-bindings *old-bindings*)
   (funcall *prompt-cancel*))
 
 (bind-prompt (#\rubout)
@@ -165,7 +178,7 @@
     (progn
       (set-cmd-cur nil)
       (set-cmd "")
-      (setf *key-bindings* *old-bindings*)
+      (set-key-bindings *old-bindings*)
       (funcall *prompt-cancel*))))
 
 (bind-prompt (#\return)
@@ -173,5 +186,5 @@
                           (subseq (cmd) *prompt-len*))))
     (set-cmd-cur nil)
     (set-cmd "")
-    (setf *key-bindings* *old-bindings*)
+    (set-key-bindings *old-bindings*)
     (funcall *prompt-callback* str)))

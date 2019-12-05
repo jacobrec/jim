@@ -3,7 +3,7 @@
 if [ "$1" = "test" ]; then
     echo "" | sbcl --load test_runner.lisp
 else
-    sbcl --script appLaunch.lisp 2> crash;
+    sbcl --script appLaunch.lisp "$@" 2> crash;
     if [ $? -ne 0 ]; then
         reset
         tput rmcup

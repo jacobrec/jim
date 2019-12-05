@@ -17,16 +17,16 @@
 
 (defun use-vim-bindings ()
   "sets the global editor bindings to the vim ones"
-  (setf *key-bindings* *normal-bindings*))
+  (set-key-bindings *normal-bindings*))
 
 (defun normal-mode ()
   "enter normal mode"
-  (setf *key-bindings* *normal-bindings*)
+  (set-key-bindings *normal-bindings*)
   (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
-  (setf *key-bindings* *insert-bindings*)
+  (set-key-bindings *insert-bindings*)
   (set-mode :insert))
 
 (defun command-mode ()
@@ -153,4 +153,16 @@
      (setf *readtable* old-rtable)))
 
 (defcmd q ()
+  (if (buffer-dirty)
+    (set-cmd "no write since last change (add ! to override)")
+    (exit-jim)))
+
+(defcmd q! ()
+  (exit-jim))
+
+(defcmd w (&optional name)
+  (write-buffer :name name))
+
+(defcmd wq ()
+  (write-buffer)
   (exit-jim))
