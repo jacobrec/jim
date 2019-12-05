@@ -39,24 +39,28 @@
 (defun set-mode (mode)
   (jim-editor:set-mode *editor* mode))
 
-(defun undo ()
-  (jim-editor:undo *editor* 1)
+(defun undo (&optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:undo (jim-editor:tab-buffer buff)))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
-  (jim-editor:editor-buffer *editor*))
+  (nth (jim-editor:editor-selected-tab *editor*)
+       (jim-editor:editor-tabs *editor*)))
 
 (defun write-buffer (&key (buff (current-buffer)) name)
-  ; TODO: write different buffers
-  (jim-editor:write-buff *editor* name))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:write-buff (jim-editor:tab-buffer buff) name)))
 
 (defun buffer-dirty (&optional (buff (current-buffer)))
-  (jbedit:buffer-dirty buff))
+  (jim-editor:tab-dirty buff))
 
 (defvar running t)
 
 (defun exit-jim ()
   (setf running nil))
+
+;TODO: exit tab
 
 (defun is-running ()
   running)
@@ -83,11 +87,13 @@
 
 ;; editing
 
+;TODO: specific buffers
 (defun del ()
   (jim-editor:delete-from *editor* (jim-editor:editor-index *editor*)
                (1+ (jim-editor:editor-index *editor*)))
   (jim-editor:set-dirty *editor* :buffer))
 
+;TODO: specific buffers
 (defun backspace ()
   (jim-editor:delete-from *editor* (1- (jim-editor:editor-index *editor*))
                           (jim-editor:editor-index *editor*))
@@ -95,6 +101,8 @@
   (jim-editor:set-dirty *editor* :buffer))
 
 
+;TODO: specific buffers
+;TODO: fix cursor
 (defun insert (str &optional loc)
   (jim-editor:insert *editor*
     str (or loc (jim-editor:cursor-index
@@ -102,9 +110,11 @@
   (jim-editor:slide-cursor *editor* 1)
   (jim-editor:set-dirty *editor* :buffer))
 
+;TODO: specific buffers
 (defun insert-char (ch &optional loc)
   (insert (make-string 1 :initial-element ch) loc))
 
+;TODO: specific buffers
 (defun enter ()
   (insert-char #\newline))
 

@@ -12,6 +12,7 @@
            editor-tabs
            editor-selected-tab
            tab-name
+           tab-buffer
            tab-dirty
 
            insert
@@ -62,8 +63,11 @@
   (let ((tab (nth (editor-selected-tab edit) (editor-tabs edit))))
     (setf (tab-buffer tab) buf)))
 
+(defun editor-tab (edit)
+  (nth (editor-selected-tab edit) (editor-tabs edit)))
+
 (defun editor-buffer (edit)
-  (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
+  (tab-buffer (editor-tab edit)))
 
 (defun editor-rope (edit)
   (jbedit:buffer-head (editor-buffer edit)))

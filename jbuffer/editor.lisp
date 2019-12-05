@@ -57,22 +57,23 @@
 
 
 (defun write-buff (buff &optional fname)
-  (if (null fname) (setf fname (buffer-fname buff)))
+  (let ((dirty (not (null fname))))
+    (if (null fname) (setf fname (buffer-fname buff)))
 
-  (with-open-file (f fname
-                     :direction :output
-                     :if-exists :supersede
-                     :if-does-not-exist :create)
-    (mapcar
-      (lambda (chunk)
-        (princ chunk f))
-      (jbrope:chunks (buffer-head buff))))
+    (with-open-file (f fname
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create)
+      (mapcar
+        (lambda (chunk)
+          (princ chunk f))
+        (jbrope:chunks (buffer-head buff))))
 
-  (make-buffer
-    :stack (buffer-stack buff)
-    :redo  (buffer-redo buff)
-    :dirty nil
-    :fname (buffer-fname buff)))
+    (make-buffer
+      :stack (buffer-stack buff)
+      :redo  (buffer-redo buff)
+      :dirty dirty
+      :fname (buffer-fname buff))))
 
 
 (defun insert-coord (buff str lines &optional (cols 0))
