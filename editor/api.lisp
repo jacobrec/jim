@@ -6,6 +6,9 @@
     *editor*
     set-mode
     undo
+    current-buffer
+    write-buffer
+    buffer-dirty
     exit-jim
     is-running
     cursor-left
@@ -39,6 +42,16 @@
 (defun undo ()
   (jim-editor:undo *editor* 1)
   (jim-editor:set-dirty *editor* :buffer))
+
+(defun current-buffer ()
+  (jim-editor:editor-buffer *editor*))
+
+(defun write-buffer (&key (buff (current-buffer)) name)
+  ; TODO: write different buffers
+  (jim-editor:write-buff *editor* name))
+
+(defun buffer-dirty (&optional (buff (current-buffer)))
+  (jbedit:buffer-dirty buff))
 
 (defvar running t)
 

@@ -9,6 +9,7 @@
     #:buffer-head
     #:open-buff
     #:write-buff
+    #:buffer-dirty
     #:insert-coord
     #:insert
     #:del-from-coord
