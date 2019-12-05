@@ -9,8 +9,11 @@
            editor-index
            editor-redraw
            editor-mode
+	   editor-keybindings
            editor-tabs
            editor-selected-tab
+	   tab-mode
+	   tab-keybindings
            tab-name
            tab-dirty
 
@@ -32,6 +35,8 @@
 
 ; an individual tab
 (defstruct tab
+  mode
+  keybindings
   buffer
   cur)
 
@@ -42,7 +47,6 @@
 
 ; contains the entire editor
 (defstruct editor
-  mode
   selected-tab
   tabs
   redraw
@@ -51,7 +55,6 @@
 
 (defun new-editor (files)
   (make-editor
-    :mode :normal
     :selected-tab 0
     :tabs (mapcar (lambda (filename) (open-tab filename))
                   (or files '("/tmp/jimscratch")))
@@ -64,6 +67,12 @@
 
 (defun editor-buffer (edit)
   (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
+
+(defun editor-mode (edit)
+  (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))))
+
+(defun editor-keybindings (edit)
+  (tab-keybindings (nth (editor-selected-tab edit) (editor-tabs edit))))
 
 (defun editor-rope (edit)
   (jbedit:buffer-head (editor-buffer edit)))
@@ -92,6 +101,8 @@
 ;; tab manipualtion
 (defun open-tab (filename)
   (make-tab
+    :mode :normal
+    :keybindings bind:*key-bindings*
     :buffer (jbedit:open-buff filename)
     :cur (make-cursor :index 0 :line 0 :col 0)))
 

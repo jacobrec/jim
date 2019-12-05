@@ -19,4 +19,4 @@
 
 (defun do-input (edit ch)
   (set-dirty edit :status)
-  (jim.bindings:do-keypress ch))
+    (jim.bindings:do-keypress ch))
