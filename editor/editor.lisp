@@ -195,5 +195,5 @@
 (defun set-mode (edit mode)
   (set-dirty edit :status)
   (set-dirty edit :cmd)
-  (setf (editor-mode edit) mode))
+  (setf (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))) mode))
 
