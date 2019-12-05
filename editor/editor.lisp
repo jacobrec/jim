@@ -16,6 +16,7 @@
 
            insert
            undo
+           write-buff
            delete-from
 
            move-cursor-row
@@ -84,6 +85,9 @@
 
 (defun insert (edit str loc)
   (set-editor-buffer edit (jbedit:insert (editor-buffer edit) str loc)))
+
+(defun write-buff (edit name)
+  (set-editor-buffer edit (jbedit:write-buff (editor-buffer edit) name)))
 
 ;; tab manipualtion
 (defun open-tab (filename)

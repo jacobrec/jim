@@ -153,4 +153,16 @@
      (setf *readtable* old-rtable)))
 
 (defcmd q ()
+  (if (buffer-dirty)
+    (set-cmd "no write since last change (add ! to override)")
+    (exit-jim)))
+
+(defcmd q! ()
+  (exit-jim))
+
+(defcmd w (&optional name)
+  (write-buffer :name name))
+
+(defcmd wq ()
+  (write-buffer)
   (exit-jim))
