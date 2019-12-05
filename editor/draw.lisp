@@ -110,18 +110,19 @@
     (draw-status
       (editor-mode edit)
       (format nil "~a" (editor-cur edit))
-      (format nil "R:~a C~a"
+      (format nil "R:~a C~a || ~a"
               (cursor-line (editor-cur edit))
-              (cursor-col (editor-cur edit)))))
+              (cursor-col (editor-cur edit))
+              (jbrope:rope-len (jbedit:buffer-head (editor-buffer edit))))))
 
   ; Draw command propmt
   (when (is-dirty edit :cmd)
     (draw-command (editor-cmd edit) (editor-mode edit)))
 
-    (if (editor-cmdcur edit)
-      (move-to (1+ (editor-cmdcur edit)) (term-height))
-      (move-to (+ 1 (cursor-col (editor-cur edit)))
-               (+ 2 (cursor-line (editor-cur edit)))))
+  (if (editor-cmdcur edit)
+    (move-to (1+ (editor-cmdcur edit)) (term-height))
+    (move-to (+ 1 (cursor-col (editor-cur edit)))
+             (+ 2 (cursor-line (editor-cur edit)))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
 
