@@ -9,8 +9,11 @@
            editor-index
            editor-redraw
            editor-mode
+           editor-keybindings
            editor-tabs
            editor-selected-tab
+           tab-mode
+           tab-keybindings
            tab-name
            tab-buffer
            tab-dirty
@@ -33,6 +36,8 @@
 
 ; an individual tab
 (defstruct tab
+  mode
+  keybindings
   buffer
   cur)
 
@@ -43,7 +48,6 @@
 
 ; contains the entire editor
 (defstruct editor
-  mode
   selected-tab
   tabs
   redraw
@@ -52,7 +56,6 @@
 
 (defun new-editor (files)
   (make-editor
-    :mode :normal
     :selected-tab 0
     :tabs (mapcar (lambda (filename) (open-tab filename))
                   (or files '("/tmp/jimscratch")))
@@ -68,6 +71,12 @@
 
 (defun editor-buffer (edit)
   (tab-buffer (editor-tab edit)))
+
+(defun editor-mode (edit)
+  (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))))
+
+(defun editor-keybindings (edit)
+  (tab-keybindings (nth (editor-selected-tab edit) (editor-tabs edit))))
 
 (defun editor-rope (edit)
   (jbedit:buffer-head (editor-buffer edit)))
@@ -96,6 +105,8 @@
 ;; tab manipualtion
 (defun open-tab (filename)
   (make-tab
+    :mode :normal
+    :keybindings bind:*key-bindings*
     :buffer (jbedit:open-buff filename)
     :cur (make-cursor :index 0 :line 0 :col 0)))
 
@@ -104,17 +115,17 @@
 
 ;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount)
-  (move-cols edit amount t))
+  (move-cols edit amount t nil))
 (defun move-cursor-col (edit amount)
-  (move-cols edit amount nil))
+  (move-cols edit amount nil nil))
 (defun move-cursor-row (edit amount)
   (let ((c (cursor-col (editor-cur edit)))
         (c-row (cursor-line (editor-cur edit))))
     (move-rows edit amount)
     (unless (= c-row (cursor-line (editor-cur edit)))
-      (move-cols edit c nil))))
+      (move-cols edit c nil nil))))
 
-(defun move-cols (edit c wrap)
+(defun move-cols (edit c wrap insert)
   (let* ((cur (editor-cur edit))
          (i (cursor-index cur))
          (rope (editor-rope edit)))
@@ -127,12 +138,12 @@
                 (incf (cursor-index cur) 2)
                 (incf (cursor-line cur))
                 (setf (cursor-col cur) 0)
-                (move-cols edit (1- c) wrap))))
+                (move-cols edit (1- c) wrap insert))))
            ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope)))
             ;; Forward no line end
             (incf (cursor-index cur))
             (incf (cursor-col cur))
-            (move-cols edit (1- c) wrap))
+            (move-cols edit (1- c) wrap insert))
            ((and (< c 0) (or (= i 0)
                              (char= #\newline (jbrope:rope-ref rope (1- i)))))
             ;; Backwards line end
@@ -144,12 +155,12 @@
                            (jbrope:rope-len rope))
                        (or (jbrope:prev rope (cursor-index cur) '(#\newline)) -1)))
               (decf (cursor-col cur) 2)
-              (move-cols edit (1+ c) wrap)))
+              (move-cols edit (1+ c) wrap insert)))
            ((< c 0)
             ;; Backwards no line end
             (decf (cursor-index cur))
             (decf (cursor-col cur))
-            (move-cols edit (1+ c) wrap)))))
+            (move-cols edit (1+ c) wrap insert)))))
 
 (defun move-rows (edit r)
   (let* ((cur (editor-cur edit))
@@ -157,18 +168,26 @@
          (rope (editor-rope edit)))
     (when (> r 0)
       ; moving down (incrementing row)
-      (decf r 1)
-      (decf (cursor-index cur) (cursor-col cur))
-      (when (char= #\newline (jbrope:rope-ref rope (cursor-index cur)))
-        (decf (cursor-index cur)))
-      (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
-        (when eol
-          (let ((i (cursor-index cur)))
-            (setf (cursor-index cur) eol)
-            (incf (cursor-index cur)))
-          (setf (cursor-col cur) 0)
-          (incf (cursor-line cur))
-          (move-rows edit r))))
+      (let ((len (jbrope:rope-len rope)))
+        (unless (= len (cursor-index cur))
+          (decf r 1)
+          (decf (cursor-index cur) (cursor-col cur))
+          (when (char= #\newline (jbrope:rope-ref rope (cursor-index cur)))
+            (decf (cursor-index cur)))
+          (let ((eol (jbrope:next rope (cursor-index cur) '(#\newline))))
+            (when eol
+              (when (= (+ 1 eol) len)
+                (incf r)
+                (incf (cursor-index cur) (cursor-col cur))
+                (when (char= #\newline (jbrope:rope-ref rope (cursor-index cur)))
+                  (incf (cursor-index cur))))
+              (unless (= (+ 1 eol) len)
+                (let ((i (cursor-index cur)))
+                  (setf (cursor-index cur) eol)
+                  (incf (cursor-index cur)))
+                (setf (cursor-col cur) 0)
+                (incf (cursor-line cur))
+                (move-rows edit r)))))))
     (when (and (< 0 (cursor-line cur)) (> 0 r))
       ; moving up (decrementing row)
       (incf r 1)
@@ -188,5 +207,5 @@
 (defun set-mode (edit mode)
   (set-dirty edit :status)
   (set-dirty edit :cmd)
-  (setf (editor-mode edit) mode))
+  (setf (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))) mode))
 

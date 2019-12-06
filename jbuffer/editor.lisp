@@ -6,6 +6,7 @@
   (:nicknames jbedit)
   (:use :cl)
   (:export
+    #:make-buffer
     #:buffer-head
     #:open-buff
     #:write-buff

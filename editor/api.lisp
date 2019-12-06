@@ -5,6 +5,8 @@
   (:export
     *editor*
     set-mode
+    mode
+    set-content
     undo
     current-buffer
     write-buffer
@@ -15,6 +17,7 @@
     cursor-right
     cursor-up
     cursor-down
+    cursor-to
     cursor->line-start
     cursor->line-end
     del
@@ -42,6 +45,19 @@
 (defun undo (&optional (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
         (jbedit:undo (jim-editor:tab-buffer buff)))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
+
+(defun mode ()
+  (jim-editor:editor-mode *editor*))
+
+(defun set-content (str)
+  (setf (jim-editor:tab-buffer (nth (jim-editor:editor-selected-tab *editor*)
+                                    (jim-editor:editor-tabs *editor*)))
+	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
+			    :redo nil
+			    :dirty nil
+			    :fname "jtodo"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
@@ -79,6 +95,13 @@
 (defun cursor-down ()
   (jim-editor:move-cursor-row *editor* 1))
 
+(defun cursor-to (x y)
+  ; TODO: fix this hack
+  (jim-editor:move-cursor-row *editor* -1000000)
+  (jim-editor:move-cursor-col *editor* -1000000)
+  (jim-editor:move-cursor-row *editor* y)
+  (jim-editor:move-cursor-col *editor* x))
+
 (defun cursor->line-start ()
   (jim-editor:move-cursor-col *editor* -1000000))
 
@@ -91,15 +114,16 @@
 (defun del ()
   (jim-editor:delete-from *editor* (jim-editor:editor-index *editor*)
                (1+ (jim-editor:editor-index *editor*)))
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 ;TODO: specific buffers
 (defun backspace ()
   (jim-editor:delete-from *editor* (1- (jim-editor:editor-index *editor*))
                           (jim-editor:editor-index *editor*))
   (jim-editor:slide-cursor *editor* -1)
-  (jim-editor:set-dirty *editor* :buffer))
-
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 ;TODO: specific buffers
 ;TODO: fix cursor
@@ -108,7 +132,8 @@
     str (or loc (jim-editor:cursor-index
                   (jim-editor:editor-cur *editor*))))
   (jim-editor:slide-cursor *editor* 1)
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 ;TODO: specific buffers
 (defun insert-char (ch &optional loc)
