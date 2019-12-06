@@ -20,6 +20,10 @@
     cursor-to
     cursor->line-start
     cursor->line-end
+    cursor-index
+    cursor-line
+    cursor-col
+    del-range
     del
     backspace
     enter
@@ -39,46 +43,51 @@
 
 ;; editor state
 
-(defun set-mode (mode)
-  (jim-editor:set-mode *editor* mode))
+(defun set-mode (mode &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-mode buff) mode))
 
-(defun mode ()
-  (jim-editor:editor-mode *editor*))
-
-(defun set-content (str)
-  (setf (jim-editor:tab-buffer (nth (jim-editor:editor-selected-tab *editor*)
-                                    (jim-editor:editor-tabs *editor*)))
-        (jbedit:make-buffer :stack (jbrope:str-to-rope str)
-                            :redo nil
-                            :dirty nil
-                            :fname "jtodo"))
-  (jim-editor:set-dirty *editor* :buffer))
-
-(defun undo ()
-  (jim-editor:undo *editor* 1)
+(defun undo (&optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:undo (jim-editor:tab-buffer buff)))
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :tabs))
 
+(defun mode (&optional (buff (current-buffer)))
+  (jim-editor:tab-mode buff))
+
+(defun set-content (str &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
+			    :redo nil
+			    :dirty nil
+			    :fname "jtodo"))
+  (jim-editor:set-dirty *editor* :buffer))
+
 (defun current-buffer ()
-  (jim-editor:editor-buffer *editor*))
+  (nth (jim-editor:editor-selected-tab *editor*)
+       (jim-editor:editor-tabs *editor*)))
 
 (defun write-buffer (&key (buff (current-buffer)) name)
-  ; TODO: write different buffers
-  (jim-editor:write-buff *editor* name))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:write-buff (jim-editor:tab-buffer buff) name))
+  (jim-editor:set-dirty *editor* :tabs))
 
 (defun buffer-dirty (&optional (buff (current-buffer)))
-  (jbedit:buffer-dirty buff))
+  (jim-editor:tab-dirty buff))
 
 (defvar running t)
 
 (defun exit-jim ()
   (setf running nil))
 
+;TODO: exit tab
+
 (defun is-running ()
   running)
 
 ;; cursor
 
+;TODO: cursor movements for buffers
 (defun cursor-left ()
   (jim-editor:move-cursor-col *editor* -1))
 
@@ -104,31 +113,46 @@
 (defun cursor->line-end ()
   (jim-editor:move-cursor-col *editor* 1000000))
 
+(defun cursor-index (&optional (buff (current-buffer)))
+  (jim-utils:cursor-index (jim-editor:tab-cur buff)))
+
+(defun cursor-line (&optional (buff (current-buffer)))
+  (jim-utils:cursor-line (jim-editor:tab-cur buff)))
+
+(defun cursor-col (&optional (buff (current-buffer)))
+  (jim-utils:cursor-col (jim-editor:tab-cur buff)))
+
 ;; editing
 
-(defun del ()
-  (jim-editor:delete-from *editor* (jim-editor:editor-index *editor*)
-               (1+ (jim-editor:editor-index *editor*)))
+(defun del-range (start end &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:del-from (jim-editor:tab-buffer buff)
+                         (max 0 start) (max 0 end))))
+
+(defun del (&optional (buff (current-buffer)))
+  (del-range (cursor-index buff) (1+ (cursor-index buff)))
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :tabs))
 
-(defun backspace ()
-  (jim-editor:slide-cursor *editor* -1)
-  (del))
+(defun backspace (&optional (buff (current-buffer)))
+  (jim-editor:slide-cursor *editor* -1) ; TODO: this is not buffer specific
+  (del buff))
 
-(defun insert (str &optional loc for-newline)
-  (jim-editor:insert *editor*
-                     str (or loc (jim-editor:cursor-index
-                                  (jim-editor:editor-cur *editor*))))
-  (jim-editor:slide-cursor *editor* 1 for-newline)
+(defun insert (str &key (loc (cursor-index)) (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:insert (jim-editor:tab-buffer buff) str loc))
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :tabs))
 
-(defun insert-char (ch &optional loc)
-  (insert (make-string 1 :initial-element ch) loc (char= ch #\newline)))
+(defun insert-char (ch &key (loc (cursor-index)) (buff (current-buffer)))
+  (let ((for-newline (char= ch #\newline)))
+    (insert (make-string 1 :initial-element ch)
+            :loc loc :buff buff)
+    ;TODO: this is not buffer specific
+    (jim-editor:slide-cursor *editor* 1 for-newline)))
 
-(defun enter ()
-  (insert-char #\newline))
+(defun enter (&key (loc (cursor-index)) (buff (current-buffer)))
+  (insert-char #\newline :loc loc :buff buff))
 
 ;; command line
 

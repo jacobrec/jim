@@ -16,6 +16,7 @@
            tab-keybindings
            tab-name
            tab-buffer
+           tab-cur
            tab-dirty
 
            insert
@@ -66,8 +67,11 @@
   (let ((tab (nth (editor-selected-tab edit) (editor-tabs edit))))
     (setf (tab-buffer tab) buf)))
 
+(defun editor-tab (edit)
+  (nth (editor-selected-tab edit) (editor-tabs edit)))
+
 (defun editor-buffer (edit)
-  (tab-buffer (nth (editor-selected-tab edit) (editor-tabs edit))))
+  (tab-buffer (editor-tab edit)))
 
 (defun editor-mode (edit)
   (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))))
