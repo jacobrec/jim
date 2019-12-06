@@ -94,8 +94,8 @@
   ; TODO: fix this hack
   (jim-editor:move-cursor-row *editor* -1000000)
   (jim-editor:move-cursor-col *editor* -1000000)
-  (jim-editor:move-cursor-row *editor* x)
-  (jim-editor:move-cursor-col *editor* y))
+  (jim-editor:move-cursor-row *editor* y)
+  (jim-editor:move-cursor-col *editor* x))
 
 (defun cursor->line-start ()
   (jim-editor:move-cursor-col *editor* -1000000))
