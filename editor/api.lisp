@@ -135,10 +135,8 @@
   (jim-editor:set-dirty *editor* :tabs))
 
 (defun backspace (&optional (buff (current-buffer)))
-  (del-range (1- (cursor-index buff)) (cursor-index buff))
   (jim-editor:slide-cursor *editor* -1) ; TODO: this is not buffer specific
-  (jim-editor:set-dirty *editor* :buffer)
-  (jim-editor:set-dirty *editor* :tabs))
+  (del buff))
 
 (defun insert (str &key (loc (cursor-index)) (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
