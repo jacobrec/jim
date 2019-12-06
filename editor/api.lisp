@@ -65,7 +65,8 @@
 
 (defun write-buffer (&key (buff (current-buffer)) name)
   (setf (jim-editor:tab-buffer buff)
-        (jbedit:write-buff (jim-editor:tab-buffer buff) name)))
+        (jbedit:write-buff (jim-editor:tab-buffer buff) name))
+  (jim-editor:set-dirty *editor* :tabs))
 
 (defun buffer-dirty (&optional (buff (current-buffer)))
   (jim-editor:tab-dirty buff))
