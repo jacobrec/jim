@@ -16,6 +16,7 @@
            tab-keybindings
            tab-name
            tab-buffer
+           tab-cur
            tab-dirty
 
            insert
