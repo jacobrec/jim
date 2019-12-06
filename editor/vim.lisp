@@ -36,12 +36,12 @@
     (set-mode :cmd)
     (prompt ":"
         (lambda (command)
-        (eval (read-from-string
-               (concatenate 'string "( vim-cmd:" command ")")))
-        (when (equal (mode) :cmd)
+          (eval (read-from-string
+                 (concatenate 'string "( vim-cmd:" command ")")))
+          (when (equal (mode) :cmd)
             (set-mode old-mode)))
         (lambda ()
-        (when (equal (mode) :cmd)
+          (when (equal (mode) :cmd)
             (set-mode old-mode))))))
 
 (defmacro bind-normal ((&rest keys) &rest body)

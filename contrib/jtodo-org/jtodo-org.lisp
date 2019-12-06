@@ -45,8 +45,21 @@
 
 (bind-jtodo (#\return)
   (setf *todo-list* (list-toggle *todo-list* (1+ *todo-item*)))
+  (file-write-list *todo-list*)
   (redraw-list))
 
+(bind-jtodo ("n")
+  (prompt "new item: "
+          (lambda (item)
+            (setf *todo-list* (list-add *todo-list* item))
+            (file-write-list *todo-list*)
+            (redraw-list))
+          (lambda () t)))
 
+(bind-jtodo ("c")
+  (setf *todo-list* (list-clear-done *todo-list*))
+  (file-write-list *todo-list*)
+  (redraw-list))
+ 
 (bind-jtodo (":")
   (vim:command-mode))
