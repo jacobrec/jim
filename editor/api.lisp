@@ -41,7 +41,8 @@
 
 (defun undo ()
   (jim-editor:undo *editor* 1)
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 (defun current-buffer ()
   (jim-editor:editor-buffer *editor*))
@@ -86,13 +87,15 @@
 (defun del ()
   (jim-editor:delete-from *editor* (jim-editor:editor-index *editor*)
                (1+ (jim-editor:editor-index *editor*)))
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 (defun backspace ()
   (jim-editor:delete-from *editor* (1- (jim-editor:editor-index *editor*))
                           (jim-editor:editor-index *editor*))
   (jim-editor:slide-cursor *editor* -1)
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 
 (defun insert (str &optional loc)
@@ -100,7 +103,8 @@
     str (or loc (jim-editor:cursor-index
                   (jim-editor:editor-cur *editor*))))
   (jim-editor:slide-cursor *editor* 1)
-  (jim-editor:set-dirty *editor* :buffer))
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :tabs))
 
 (defun insert-char (ch &optional loc)
   (insert (make-string 1 :initial-element ch) loc))
