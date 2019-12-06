@@ -111,8 +111,10 @@
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
 ;; TODO: cursor movements are complex and probably wrong
-(defun slide-cursor (edit amount)
-  (move-cols edit amount t (eq :insert (editor-mode edit))))
+(defun slide-cursor (edit amount &optional (for-newline nil))
+  (move-cols edit amount t (eq :insert (editor-mode edit)))
+  (when for-newline
+    (decf (cursor-index (editor-cur edit)))))
 (defun move-cursor-col (edit amount)
   (move-cols edit amount nil (eq :insert (editor-mode edit))))
 (defun move-cursor-row (edit amount)
