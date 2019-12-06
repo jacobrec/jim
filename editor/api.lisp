@@ -48,10 +48,10 @@
 (defun set-content (str)
   (setf (jim-editor:tab-buffer (nth (jim-editor:editor-selected-tab *editor*)
                                     (jim-editor:editor-tabs *editor*)))
-	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
-			    :redo nil
-			    :dirty nil
-			    :fname "jtodo"))
+        (jbedit:make-buffer :stack (jbrope:str-to-rope str)
+                            :redo nil
+                            :dirty nil
+                            :fname "jtodo"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun undo ()
@@ -113,11 +113,8 @@
   (jim-editor:set-dirty *editor* :tabs))
 
 (defun backspace ()
-  (jim-editor:delete-from *editor* (1- (jim-editor:editor-index *editor*))
-                          (jim-editor:editor-index *editor*))
   (jim-editor:slide-cursor *editor* -1)
-  (jim-editor:set-dirty *editor* :buffer)
-  (jim-editor:set-dirty *editor* :tabs))
+  (del))
 
 (defun insert (str &optional loc for-newline)
   (jim-editor:insert *editor*
