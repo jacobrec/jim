@@ -99,6 +99,12 @@
 (bind-normal ("u")
   (undo))
 
+(bind-normal ("gg")
+  (cursor-to 0 0))
+
+(bind-normal ("G")
+  (cursor-to 0 999999999))
+
 (vim:bind-normal ("r" '*)
   (del)
   (insert-char *last-key*)
