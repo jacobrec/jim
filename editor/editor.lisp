@@ -114,16 +114,18 @@
   (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
 
 ;; TODO: cursor movements are complex and probably wrong
-(defun slide-cursor (edit amount)
-  (move-cols edit amount t nil))
+(defun slide-cursor (edit amount &optional (for-newline nil))
+  (move-cols edit amount t (eq :insert (editor-mode edit)))
+  (when for-newline
+    (decf (cursor-index (editor-cur edit)))))
 (defun move-cursor-col (edit amount)
-  (move-cols edit amount nil nil))
+  (move-cols edit amount nil (eq :insert (editor-mode edit))))
 (defun move-cursor-row (edit amount)
   (let ((c (cursor-col (editor-cur edit)))
         (c-row (cursor-line (editor-cur edit))))
     (move-rows edit amount)
     (unless (= c-row (cursor-line (editor-cur edit)))
-      (move-cols edit c nil nil))))
+      (move-cols edit c nil (eq :insert (editor-mode edit))))))
 
 (defun move-cols (edit c wrap insert)
   (let* ((cur (editor-cur edit))
@@ -131,7 +133,8 @@
          (rope (editor-rope edit)))
     (cond  ((and (> c 0) (< (cursor-index cur) (jbrope:rope-len rope))
                  (or (char= #\newline (jbrope:rope-ref rope i))
-                     (char= #\newline (jbrope:rope-ref rope (1+ i)))))
+                     (and (not insert)
+                          (char= #\newline (jbrope:rope-ref rope (1+ i))))))
             ;; Forward hits line end
             (when wrap
               (unless (= (+ (cursor-index cur) 2) (jbrope:rope-len rope))

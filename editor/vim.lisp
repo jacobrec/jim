@@ -68,12 +68,12 @@
   (insert-mode))
 
 (bind-normal ("a")
-  (cursor-right)
-  (insert-mode))
+  (insert-mode)
+  (cursor-right))
 
 (bind-normal ("A")
-  (cursor->line-end)
-  (insert-mode))
+  (insert-mode)
+  (cursor->line-end))
 
 (bind-normal ("h")
   (cursor-left))
@@ -98,6 +98,12 @@
 
 (bind-normal ("u")
   (undo))
+
+(bind-normal ("gg")
+  (cursor-to 0 0))
+
+(bind-normal ("G")
+  (cursor-to 0 999999999))
 
 (vim:bind-normal ("r" '*)
   (del)

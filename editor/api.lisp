@@ -127,17 +127,17 @@
 
 ;TODO: specific buffers
 ;TODO: fix cursor
-(defun insert (str &optional loc)
+(defun insert (str &optional loc for-newline)
   (jim-editor:insert *editor*
-    str (or loc (jim-editor:cursor-index
-                  (jim-editor:editor-cur *editor*))))
-  (jim-editor:slide-cursor *editor* 1)
+                     str (or loc (jim-editor:cursor-index
+                                  (jim-editor:editor-cur *editor*))))
+  (jim-editor:slide-cursor *editor* 1 for-newline)
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :tabs))
 
 ;TODO: specific buffers
 (defun insert-char (ch &optional loc)
-  (insert (make-string 1 :initial-element ch) loc))
+  (insert (make-string 1 :initial-element ch) loc (char= ch #\newline)))
 
 ;TODO: specific buffers
 (defun enter ()
