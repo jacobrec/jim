@@ -39,8 +39,8 @@
 
 ;; editor state
 
-(defun set-mode (mode)
-  (jim-editor:set-mode *editor* mode))
+(defun set-mode (mode &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-mode buff) mode))
 
 (defun undo (&optional (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
@@ -48,12 +48,11 @@
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :tabs))
 
-(defun mode ()
-  (jim-editor:editor-mode *editor*))
+(defun mode (&optional (buff (current-buffer)))
+  (jim-editor:tab-mode buff))
 
-(defun set-content (str)
-  (setf (jim-editor:tab-buffer (nth (jim-editor:editor-selected-tab *editor*)
-                                    (jim-editor:editor-tabs *editor*)))
+(defun set-content (str &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
 	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
 			    :redo nil
 			    :dirty nil
