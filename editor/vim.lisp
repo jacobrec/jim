@@ -6,6 +6,7 @@
     use-vim-bindings
     normal-mode
     insert-mode
+    command-mode
     bind-normal
     bind-insert
     defcmd))
@@ -31,14 +32,17 @@
 
 (defun command-mode ()
   "enter command mode"
-  (set-mode :cmd)
-  (prompt ":"
-    (lambda (command)
-      (eval (read-from-string
-              (concatenate 'string "( vim-cmd:" command ")")))
-      (set-mode :normal))
-    (lambda ()
-      (set-mode :normal))))
+  (let ((old-mode (mode)))
+    (set-mode :cmd)
+    (prompt ":"
+        (lambda (command)
+          (eval (read-from-string
+                 (concatenate 'string "( vim-cmd:" command ")")))
+          (when (equal (mode) :cmd)
+            (set-mode old-mode)))
+        (lambda ()
+          (when (equal (mode) :cmd)
+            (set-mode old-mode))))))
 
 (defmacro bind-normal ((&rest keys) &rest body)
   `(let ((*key-bindings* *normal-bindings*))

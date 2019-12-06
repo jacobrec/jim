@@ -15,6 +15,7 @@
            tab-mode
            tab-keybindings
            tab-name
+           tab-buffer
            tab-dirty
 
            insert
