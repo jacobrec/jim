@@ -35,10 +35,12 @@
   (prompt ":"
     (lambda (command)
       (eval (read-from-string
-              (concatenate 'string "( vim-cmd:" command ")")))
-      (set-mode :normal))
+	     (concatenate 'string "( vim-cmd:" command ")")))
+      (when (equal (mode) :cmd)
+	(set-mode :normal)))
     (lambda ()
-      (set-mode :normal))))
+      (when (equal (mode) :cmd)
+        (set-mode :normal)))))
 
 (defmacro bind-normal ((&rest keys) &rest body)
   `(let ((*key-bindings* *normal-bindings*))

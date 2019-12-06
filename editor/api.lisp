@@ -5,6 +5,8 @@
   (:export
     *editor*
     set-mode
+    mode
+    set-content
     undo
     current-buffer
     write-buffer
@@ -15,6 +17,7 @@
     cursor-right
     cursor-up
     cursor-down
+    cursor-to
     cursor->line-start
     cursor->line-end
     del
@@ -38,6 +41,18 @@
 
 (defun set-mode (mode)
   (jim-editor:set-mode *editor* mode))
+
+(defun mode ()
+  (jim-editor:editor-mode *editor*))
+
+(defun set-content (str)
+  (setf (jim-editor:tab-buffer (nth (jim-editor:editor-selected-tab *editor*)
+                                    (jim-editor:editor-tabs *editor*)))
+	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
+			    :redo nil
+			    :dirty nil
+			    :fname "jtodo"))
+  (jim-editor:set-dirty *editor* :buffer))
 
 (defun undo ()
   (jim-editor:undo *editor* 1)
@@ -75,6 +90,13 @@
 (defun cursor-down ()
   (jim-editor:move-cursor-row *editor* 1))
 
+(defun cursor-to (x y)
+  ; TODO: fix this hack
+  (jim-editor:move-cursor-row *editor* -1000000)
+  (jim-editor:move-cursor-col *editor* -1000000)
+  (jim-editor:move-cursor-row *editor* x)
+  (jim-editor:move-cursor-col *editor* y))
+
 (defun cursor->line-start ()
   (jim-editor:move-cursor-col *editor* -1000000))
 
@@ -93,7 +115,6 @@
                           (jim-editor:editor-index *editor*))
   (jim-editor:slide-cursor *editor* -1)
   (jim-editor:set-dirty *editor* :buffer))
-
 
 (defun insert (str &optional loc)
   (jim-editor:insert *editor*
