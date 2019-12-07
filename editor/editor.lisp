@@ -121,10 +121,16 @@
           (append (editor-tabs edit) (list tab)))))
 
 ;; TODO: cursor movements are complex and probably wrong
-(defun slide-cursor (edit amount &optional (for-newline nil))
+(defun slide-cursor (edit amount &optional (for-newline nil) (for-delete nil))
   (move-cols edit amount t (eq :insert (editor-mode edit)))
   (when for-newline
-    (decf (cursor-index (editor-cur edit)))))
+    (decf (cursor-index (editor-cur edit))))
+  (when (and for-delete
+             (char= #\newline
+                    (jbrope:rope-ref (editor-rope edit)
+                                     (1+ (cursor-index (editor-cur edit))))))
+    (incf (cursor-index (editor-cur edit)))
+    (incf (cursor-col (editor-cur edit)))))
 (defun move-cursor-col (edit amount)
   (move-cols edit amount nil (eq :insert (editor-mode edit))))
 (defun move-cursor-row (edit amount)

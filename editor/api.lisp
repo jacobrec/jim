@@ -33,6 +33,7 @@
     cursor-index
     cursor-line
     cursor-col
+    slide-cursor
     del-range
     del
     backspace
@@ -67,10 +68,10 @@
 
 (defun set-content (str &optional (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
-	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
-			    :redo nil
-			    :dirty nil
-			    :fname "/dev/null"))
+        (jbedit:make-buffer :stack (jbrope:str-to-rope str)
+                            :redo nil
+                            :dirty nil
+                            :fname "jtodo"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
@@ -196,8 +197,12 @@
   (jim-editor:set-dirty *editor* :tabs))
 
 (defun backspace (&optional (buff (current-buffer)))
-  (jim-editor:slide-cursor *editor* -1) ; TODO: this is not buffer specific
+  (jim-editor:slide-cursor *editor* -1 nil t) ; TODO: this is not buffer specific
   (del buff))
+
+(defun slide-cursor (amount &optional (buff (current-buffer))
+                              (for-newline nil) (for-delete nil))
+  (jim-editor:slide-cursor *editor* amount for-newline for-delete)) ; TODO: this is not buffer specific
 
 (defun insert (str &key (loc (cursor-index)) (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
