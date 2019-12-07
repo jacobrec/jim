@@ -14,6 +14,7 @@
            editor-selected-tab
            tab-mode
            tab-keybindings
+           tab-dname
            tab-name
            tab-buffer
            tab-cur
@@ -40,10 +41,13 @@
   mode
   keybindings
   buffer
-  cur)
+  cur
+  dname)
 
 (defun tab-name (tab)
- (jbedit:buffer-fname (tab-buffer tab)))
+  (or (tab-dname tab)
+      (jbedit:buffer-fname (tab-buffer tab))))
+
 (defun tab-dirty (tab)
  (jbedit::buffer-dirty (tab-buffer tab)))
 

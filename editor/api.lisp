@@ -13,6 +13,7 @@
     buffer-dirty
     exit-jim
     is-running
+    set-buffer-name
     buffers
     get-buffer
     num-buffers
@@ -69,7 +70,7 @@
 	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
 			    :redo nil
 			    :dirty nil
-			    :fname "jtodo"))
+			    :fname "/dev/null"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
@@ -95,6 +96,9 @@
   running)
 
 ;; buffer switching
+
+(defun set-buffer-name (name &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-dname buff) name))
 
 (defun buffers ()
   (jim-editor:editor-tabs *editor*))

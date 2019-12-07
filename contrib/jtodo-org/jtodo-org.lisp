@@ -26,6 +26,7 @@
   (new-buffer)
   (goto-buffer (1- (num-buffers))) ;TODO fix goto-buffer
   (set-bindings *jtodo-bindings*)
+  (set-buffer-name "*jtodo*")
   (setf *todo-list* (file-read-list *default-list))
   (setf *todo-item* 0)
   (set-mode :jtodo)
