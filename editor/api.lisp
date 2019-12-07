@@ -85,6 +85,18 @@
 (defun is-running ()
   running)
 
+;; buffer switching
+
+(defun goto-buffer (n)
+  (setf (jim-editor:editor-selected-tab *editor*)
+        (mod n (length (jim-editor:editor-tabs *editor*)))))
+
+(defun next-buffer ()
+  (goto-buffer (1+ (jim-editor:editor-selected-tab *editor*))))
+
+(defun previous-buffer ()
+  (goto-buffer (1- (jim-editor:editor-selected-tab *editor*))))
+
 ;; cursor
 
 ;TODO: cursor movements for buffers
