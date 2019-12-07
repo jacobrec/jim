@@ -13,6 +13,7 @@
     buffer-dirty
     exit-jim
     is-running
+    buffers
     get-buffer
     num-buffers
     goto-buffer
@@ -95,11 +96,14 @@
 
 ;; buffer switching
 
+(defun buffers ()
+  (jim-editor:editor-tabs *editor*))
+
 (defun get-buffer (n)
-  (nth n (jim-editor:editor-tabs *editor*)))
+  (nth n (buffers)))
 
 (defun num-buffers ()
-  (length (jim-editor:editor-tabs *editor*)))
+  (length (buffers)))
 
 (defun goto-buffer (n)
   (setf (jim-editor:editor-selected-tab *editor*)

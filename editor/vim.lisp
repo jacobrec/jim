@@ -175,6 +175,14 @@
       (close-buffer buff)
       (exit-jim)))
 
+(defun quit-all ()
+  (cond
+    ((buffer-dirty)
+     (set-cmd "no write since last change (add ! to override)"))
+    ((<= (num-buffers) 1) (exit-jim))
+    (t (close-buffer)
+       (quit-all))))
+
 (defcmd q ()
   (if (buffer-dirty)
       (set-cmd "no write since last change (add ! to override)")
@@ -183,12 +191,25 @@
 (defcmd q! ()
   (quit-buff))
 
+(defcmd qa ()
+  (quit-all))
+
+(defcmd qa! ()
+  (exit-jim))
+
 (defcmd w (&optional name)
   (write-buffer :name name))
 
 (defcmd wq ()
   (write-buffer)
   (quit-buff))
+
+(defcmd wqa ()
+  (map nil
+       (lambda (buff)
+         (write-buffer :buff buff))
+       (buffers))
+  (exit-jim))
 
 (defcmd e (name)
   (new-buffer name))
