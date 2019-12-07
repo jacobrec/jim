@@ -13,10 +13,13 @@
     buffer-dirty
     exit-jim
     is-running
+    get-buffer
+    num-buffers
     goto-buffer
     next-buffer
     previous-buffer
     new-buffer
+    close-buffer
     cursor-left
     cursor-right
     cursor-up
@@ -91,9 +94,15 @@
 
 ;; buffer switching
 
+(defun get-buffer (n)
+  (nth n (jim-editor:editor-tabs *editor*)))
+
+(defun num-buffers ()
+  (length (jim-editor:editor-tabs *editor*)))
+
 (defun goto-buffer (n)
   (setf (jim-editor:editor-selected-tab *editor*)
-        (mod n (length (jim-editor:editor-tabs *editor*))))
+        (mod n (num-buffers)))
   (jim-editor:set-dirty *editor* :tabs)
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :status))
@@ -104,9 +113,21 @@
 (defun previous-buffer ()
   (goto-buffer (1- (jim-editor:editor-selected-tab *editor*))))
 
-(defun new-buffer (fname)
+(defun new-buffer (&optional (fname "/dev/null"))
   (jim-editor:open-new-tab *editor* fname)
   (jim-editor:set-dirty *editor* :tabs))
+
+(defun close-buffer (&optional (buff (current-buffer)))
+  (setf (jim-editor:editor-tabs *editor*)
+        (remove (if (integerp buff)
+                    (get-buffer buff)
+                    buff)
+                (jim-editor:editor-tabs *editor*)))
+  (goto-buffer (max (1- (num-buffers))
+                    (jim-editor:editor-selected-tab *editor*)))
+  (jim-editor:set-dirty *editor* :tabs)
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :status))
 
 ;; cursor
 

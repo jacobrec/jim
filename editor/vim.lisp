@@ -169,20 +169,25 @@
      (setf *package* old-pkg)
      (setf *readtable* old-rtable)))
 
+(defun quit-buff (&optional (buff (current-buffer)))
+  (if (> (num-buffers) 1)
+      (close-buffer buff)
+      (exit-jim)))
+
 (defcmd q ()
   (if (buffer-dirty)
-    (set-cmd "no write since last change (add ! to override)")
-    (exit-jim)))
+      (set-cmd "no write since last change (add ! to override)")
+      (quit-buff)))
 
 (defcmd q! ()
-  (exit-jim))
+  (quit-buff))
 
 (defcmd w (&optional name)
   (write-buffer :name name))
 
 (defcmd wq ()
   (write-buffer)
-  (exit-jim))
+  (quit-buff))
 
 (defcmd e (name)
   (new-buffer name))
