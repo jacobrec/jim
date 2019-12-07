@@ -13,6 +13,16 @@
     buffer-dirty
     exit-jim
     is-running
+    set-buffer-name
+    buffers
+    get-buffer
+    num-buffers
+    goto-buffer
+    next-buffer
+    previous-buffer
+    new-buffer
+    close-buffer
+    set-bindings
     cursor-left
     cursor-right
     cursor-up
@@ -60,7 +70,7 @@
 	(jbedit:make-buffer :stack (jbrope:str-to-rope str)
 			    :redo nil
 			    :dirty nil
-			    :fname "jtodo"))
+			    :fname "/dev/null"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
@@ -84,6 +94,57 @@
 
 (defun is-running ()
   running)
+
+;; buffer switching
+
+(defun set-buffer-name (name &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-dname buff) name))
+
+(defun buffers ()
+  (jim-editor:editor-tabs *editor*))
+
+(defun get-buffer (n)
+  (nth n (buffers)))
+
+(defun num-buffers ()
+  (length (buffers)))
+
+(defun goto-buffer (n)
+  (setf (jim-editor:editor-selected-tab *editor*)
+        (mod n (num-buffers)))
+  (jim-editor:set-dirty *editor* :tabs)
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :status))
+
+(defun next-buffer ()
+  (goto-buffer (1+ (jim-editor:editor-selected-tab *editor*))))
+
+(defun previous-buffer ()
+  (goto-buffer (1- (jim-editor:editor-selected-tab *editor*))))
+
+(defun new-buffer (&optional (fname "/dev/null"))
+  (prog1
+    (jim-editor:open-new-tab *editor* fname)
+    (jim-editor:set-dirty *editor* :tabs)))
+
+(defun close-buffer (&optional (buff (current-buffer)))
+  (setf (jim-editor:editor-tabs *editor*)
+        (remove (if (integerp buff)
+                    (get-buffer buff)
+                    buff)
+                (jim-editor:editor-tabs *editor*)))
+  (goto-buffer (max (1- (num-buffers))
+                    (jim-editor:editor-selected-tab *editor*)))
+  (jim-editor:set-dirty *editor* :tabs)
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :status))
+
+
+;; keybindings
+
+(defun set-bindings (bindings &optional (buff (current-buffer)))
+  (set-key-bindings bindings)
+  (setf (jim-editor:tab-keybindings buff) bindings))
 
 ;; cursor
 
@@ -195,7 +256,7 @@
   (set-cmd (make-adjustable-string pr))
   (set-cmd-cur *prompt-len*)
   (setf *old-bindings* *key-bindings*)
-  (set-key-bindings *prompt-bindings*)
+  (set-bindings *prompt-bindings*)
   (setf *prompt-callback* fn)
   (setf *prompt-cancel* cancel))
 
@@ -212,7 +273,7 @@
 (bind-prompt (<C-c>)
   (set-cmd-cur nil)
   (set-cmd "")
-  (set-key-bindings *old-bindings*)
+  (set-bindings *old-bindings*)
   (funcall *prompt-cancel*))
 
 (bind-prompt (#\rubout)
@@ -224,7 +285,7 @@
     (progn
       (set-cmd-cur nil)
       (set-cmd "")
-      (set-key-bindings *old-bindings*)
+      (set-bindings *old-bindings*)
       (funcall *prompt-cancel*))))
 
 (bind-prompt (#\return)
@@ -232,5 +293,5 @@
                           (subseq (cmd) *prompt-len*))))
     (set-cmd-cur nil)
     (set-cmd "")
-    (set-key-bindings *old-bindings*)
+    (set-bindings *old-bindings*)
     (funcall *prompt-callback* str)))

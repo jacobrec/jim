@@ -14,6 +14,7 @@
            editor-selected-tab
            tab-mode
            tab-keybindings
+           tab-dname
            tab-name
            tab-buffer
            tab-cur
@@ -40,10 +41,13 @@
   mode
   keybindings
   buffer
-  cur)
+  cur
+  dname)
 
 (defun tab-name (tab)
- (jbedit:buffer-fname (tab-buffer tab)))
+  (or (tab-dname tab)
+      (jbedit:buffer-fname (tab-buffer tab))))
+
 (defun tab-dirty (tab)
  (jbedit::buffer-dirty (tab-buffer tab)))
 
@@ -107,12 +111,14 @@
 (defun open-tab (filename)
   (make-tab
     :mode :normal
-    :keybindings bind:*key-bindings*
+    :keybindings nil
     :buffer (jbedit:open-buff filename)
     :cur (make-cursor :index 0 :line 0 :col 0)))
 
 (defun open-new-tab (edit filename)
-  (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
+  (let ((tab (open-tab filename)))
+    (setf (editor-tabs edit)
+          (append (editor-tabs edit) (list tab)))))
 
 ;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount &optional (for-newline nil))

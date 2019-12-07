@@ -22,27 +22,28 @@
 
 (defun normal-mode ()
   "enter normal mode"
-  (set-key-bindings *normal-bindings*)
+  (set-bindings *normal-bindings*)
   (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
-  (set-key-bindings *insert-bindings*)
+  (set-bindings *insert-bindings*)
   (set-mode :insert))
 
 (defun command-mode ()
   "enter command mode"
-  (let ((old-mode (mode)))
+  (let ((old-mode (mode))
+        (buff (current-buffer)))
     (set-mode :cmd)
     (prompt ":"
         (lambda (command)
           (eval (read-from-string
                  (concatenate 'string "( vim-cmd:" command ")")))
-          (when (equal (mode) :cmd)
-            (set-mode old-mode)))
+          (when (equal (mode buff) :cmd)
+            (set-mode old-mode buff)))
         (lambda ()
-          (when (equal (mode) :cmd)
-            (set-mode old-mode))))))
+          (when (equal (mode buff) :cmd)
+            (set-mode old-mode buff))))))
 
 (defmacro bind-normal ((&rest keys) &rest body)
   `(let ((*key-bindings* *normal-bindings*))
@@ -105,24 +106,31 @@
 (bind-normal ("G")
   (cursor-to 0 999999999))
 
-(vim:bind-normal ("r" '*)
+(bind-normal ("r" '*)
   (del)
   (insert-char *last-key*)
   (cursor-left))
 
-(vim:bind-normal (<Left>)
+(bind-normal (<Left>)
   (cursor-left))
 
-(vim:bind-normal (<Down>)
+(bind-normal (<Down>)
   (cursor-down))
 
-(vim:bind-normal (<Up>)
+(bind-normal (<Up>)
   (cursor-up))
 
-(vim:bind-normal (<Right>)
+(bind-normal (<Right>)
   (cursor-right))
 
+(bind-normal ("gt")
+  (next-buffer))
+
+(bind-normal ("gT")
+  (previous-buffer))
+
 ;;; insert mode bindings
+
 (bind-insert (<C-c>)
   (normal-mode))
 
@@ -162,12 +170,31 @@
      (setf *package* old-pkg)
      (setf *readtable* old-rtable)))
 
+(defun quit-buff (&optional (buff (current-buffer)))
+  (if (> (num-buffers) 1)
+      (close-buffer buff)
+      (exit-jim)))
+
+(defun quit-all ()
+  (cond
+    ((buffer-dirty)
+     (set-cmd "no write since last change (add ! to override)"))
+    ((<= (num-buffers) 1) (exit-jim))
+    (t (close-buffer)
+       (quit-all))))
+
 (defcmd q ()
   (if (buffer-dirty)
-    (set-cmd "no write since last change (add ! to override)")
-    (exit-jim)))
+      (set-cmd "no write since last change (add ! to override)")
+      (quit-buff)))
 
 (defcmd q! ()
+  (quit-buff))
+
+(defcmd qa ()
+  (quit-all))
+
+(defcmd qa! ()
   (exit-jim))
 
 (defcmd w (&optional name)
@@ -175,4 +202,14 @@
 
 (defcmd wq ()
   (write-buffer)
+  (quit-buff))
+
+(defcmd wqa ()
+  (map nil
+       (lambda (buff)
+         (write-buffer :buff buff))
+       (buffers))
   (exit-jim))
+
+(defcmd e (name)
+  (new-buffer name))
