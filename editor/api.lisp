@@ -114,8 +114,9 @@
   (goto-buffer (1- (jim-editor:editor-selected-tab *editor*))))
 
 (defun new-buffer (&optional (fname "/dev/null"))
-  (jim-editor:open-new-tab *editor* fname)
-  (jim-editor:set-dirty *editor* :tabs))
+  (prog1
+    (jim-editor:open-new-tab *editor* fname)
+    (jim-editor:set-dirty *editor* :tabs)))
 
 (defun close-buffer (&optional (buff (current-buffer)))
   (setf (jim-editor:editor-tabs *editor*)

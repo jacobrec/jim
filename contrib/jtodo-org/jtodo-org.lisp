@@ -23,6 +23,8 @@
 
 (defun jtodo-mode ()
   "configures jtodo mode"
+  (new-buffer)
+  (goto-buffer (1- (num-buffers))) ;TODO fix goto-buffer
   (set-key-bindings *jtodo-bindings*)
   (setf *todo-list* (file-read-list *default-list))
   (setf *todo-item* 0)

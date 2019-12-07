@@ -112,7 +112,9 @@
     :cur (make-cursor :index 0 :line 0 :col 0)))
 
 (defun open-new-tab (edit filename)
-  (setf (editor-tabs edit) (append (editor-tabs edit) (list (open-tab filename)))))
+  (let ((tab (open-tab filename)))
+    (setf (editor-tabs edit)
+          (append (editor-tabs edit) (list tab)))))
 
 ;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount &optional (for-newline nil))
