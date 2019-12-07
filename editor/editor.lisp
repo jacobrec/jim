@@ -107,7 +107,7 @@
 (defun open-tab (filename)
   (make-tab
     :mode :normal
-    :keybindings bind:*key-bindings*
+    :keybindings nil
     :buffer (jbedit:open-buff filename)
     :cur (make-cursor :index 0 :line 0 :col 0)))
 

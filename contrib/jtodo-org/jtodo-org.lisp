@@ -25,7 +25,7 @@
   "configures jtodo mode"
   (new-buffer)
   (goto-buffer (1- (num-buffers))) ;TODO fix goto-buffer
-  (set-key-bindings *jtodo-bindings*)
+  (set-bindings *jtodo-bindings*)
   (setf *todo-list* (file-read-list *default-list))
   (setf *todo-item* 0)
   (set-mode :jtodo)
@@ -65,3 +65,9 @@
  
 (bind-jtodo (":")
   (vim:command-mode))
+
+(bind-jtodo ("gt")
+  (next-buffer))
+
+(bind-jtodo ("gT")
+  (previous-buffer))

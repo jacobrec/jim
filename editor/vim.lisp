@@ -22,27 +22,28 @@
 
 (defun normal-mode ()
   "enter normal mode"
-  (set-key-bindings *normal-bindings*)
+  (set-bindings *normal-bindings*)
   (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
-  (set-key-bindings *insert-bindings*)
+  (set-bindings *insert-bindings*)
   (set-mode :insert))
 
 (defun command-mode ()
   "enter command mode"
-  (let ((old-mode (mode)))
+  (let ((old-mode (mode))
+        (buff (current-buffer)))
     (set-mode :cmd)
     (prompt ":"
         (lambda (command)
           (eval (read-from-string
                  (concatenate 'string "( vim-cmd:" command ")")))
-          (when (equal (mode) :cmd)
-            (set-mode old-mode)))
+          (when (equal (mode buff) :cmd)
+            (set-mode old-mode buff)))
         (lambda ()
-          (when (equal (mode) :cmd)
-            (set-mode old-mode))))))
+          (when (equal (mode buff) :cmd)
+            (set-mode old-mode buff))))))
 
 (defmacro bind-normal ((&rest keys) &rest body)
   `(let ((*key-bindings* *normal-bindings*))
@@ -105,27 +106,27 @@
 (bind-normal ("G")
   (cursor-to 0 999999999))
 
-(vim:bind-normal ("r" '*)
+(bind-normal ("r" '*)
   (del)
   (insert-char *last-key*)
   (cursor-left))
 
-(vim:bind-normal (<Left>)
+(bind-normal (<Left>)
   (cursor-left))
 
-(vim:bind-normal (<Down>)
+(bind-normal (<Down>)
   (cursor-down))
 
-(vim:bind-normal (<Up>)
+(bind-normal (<Up>)
   (cursor-up))
 
-(vim:bind-normal (<Right>)
+(bind-normal (<Right>)
   (cursor-right))
 
-(vim:bind-normal ("gt")
+(bind-normal ("gt")
   (next-buffer))
 
-(vim:bind-normal ("gT")
+(bind-normal ("gT")
   (previous-buffer))
 
 ;;; insert mode bindings

@@ -20,6 +20,7 @@
     previous-buffer
     new-buffer
     close-buffer
+    set-bindings
     cursor-left
     cursor-right
     cursor-up
@@ -129,6 +130,13 @@
   (jim-editor:set-dirty *editor* :tabs)
   (jim-editor:set-dirty *editor* :buffer)
   (jim-editor:set-dirty *editor* :status))
+
+
+;; keybindings
+
+(defun set-bindings (bindings &optional (buff (current-buffer)))
+  (set-key-bindings bindings)
+  (setf (jim-editor:tab-keybindings buff) bindings))
 
 ;; cursor
 
@@ -240,7 +248,7 @@
   (set-cmd (make-adjustable-string pr))
   (set-cmd-cur *prompt-len*)
   (setf *old-bindings* *key-bindings*)
-  (set-key-bindings *prompt-bindings*)
+  (set-bindings *prompt-bindings*)
   (setf *prompt-callback* fn)
   (setf *prompt-cancel* cancel))
 
@@ -257,7 +265,7 @@
 (bind-prompt (<C-c>)
   (set-cmd-cur nil)
   (set-cmd "")
-  (set-key-bindings *old-bindings*)
+  (set-bindings *old-bindings*)
   (funcall *prompt-cancel*))
 
 (bind-prompt (#\rubout)
@@ -269,7 +277,7 @@
     (progn
       (set-cmd-cur nil)
       (set-cmd "")
-      (set-key-bindings *old-bindings*)
+      (set-bindings *old-bindings*)
       (funcall *prompt-cancel*))))
 
 (bind-prompt (#\return)
@@ -277,5 +285,5 @@
                           (subseq (cmd) *prompt-len*))))
     (set-cmd-cur nil)
     (set-cmd "")
-    (set-key-bindings *old-bindings*)
+    (set-bindings *old-bindings*)
     (funcall *prompt-callback* str)))
