@@ -77,7 +77,13 @@
   (move-to 1 (term-height))
   (format t "~a" cmd))
 
+(defun clear-lines (start end)
+  (loop for i from start to end do
+       (move-to 1 i)
+       (command 2 #\K)))
+
 (defun draw-buffer (rbuf)
+  (clear-lines 2 (- (term-height) 2))
   (move-to 1 2)
   (draw-blank-line)
   (jbrope::iterate-lines rbuf
