@@ -16,6 +16,7 @@
     goto-buffer
     next-buffer
     previous-buffer
+    new-buffer
     cursor-left
     cursor-right
     cursor-up
@@ -102,6 +103,10 @@
 
 (defun previous-buffer ()
   (goto-buffer (1- (jim-editor:editor-selected-tab *editor*))))
+
+(defun new-buffer (fname)
+  (jim-editor:open-new-tab *editor* fname)
+  (jim-editor:set-dirty *editor* :tabs))
 
 ;; cursor
 

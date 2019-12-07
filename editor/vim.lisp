@@ -183,3 +183,6 @@
 (defcmd wq ()
   (write-buffer)
   (exit-jim))
+
+(defcmd e (name)
+  (new-buffer name))
