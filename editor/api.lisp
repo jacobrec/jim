@@ -13,6 +13,9 @@
     buffer-dirty
     exit-jim
     is-running
+    goto-buffer
+    next-buffer
+    previous-buffer
     cursor-left
     cursor-right
     cursor-up
@@ -89,7 +92,10 @@
 
 (defun goto-buffer (n)
   (setf (jim-editor:editor-selected-tab *editor*)
-        (mod n (length (jim-editor:editor-tabs *editor*)))))
+        (mod n (length (jim-editor:editor-tabs *editor*))))
+  (jim-editor:set-dirty *editor* :tabs)
+  (jim-editor:set-dirty *editor* :buffer)
+  (jim-editor:set-dirty *editor* :status))
 
 (defun next-buffer ()
   (goto-buffer (1+ (jim-editor:editor-selected-tab *editor*))))

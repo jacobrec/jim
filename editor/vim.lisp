@@ -122,7 +122,14 @@
 (vim:bind-normal (<Right>)
   (cursor-right))
 
+(vim:bind-normal ("gt")
+  (next-buffer))
+
+(vim:bind-normal ("gT")
+  (previous-buffer))
+
 ;;; insert mode bindings
+
 (bind-insert (<C-c>)
   (normal-mode))
 
