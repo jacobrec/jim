@@ -71,7 +71,7 @@
         (jbedit:make-buffer :stack (jbrope:str-to-rope str)
                             :redo nil
                             :dirty nil
-                            :fname "jtodo"))
+                            :fname "/dev/null"))
   (jim-editor:set-dirty *editor* :buffer))
 
 (defun current-buffer ()
