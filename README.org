@@ -1,0 +1,29 @@
+* The Jim Text Editor
+
+** installation
+
+   Jim is still an unfinished peice of software.
+
+   There are 2 ways to run it:
+
+   1. using run.sh
+
+      #+BEGIN_SRC bash
+      $ ./run.sh
+      #+END_SRC
+
+   2. building with asdf
+
+      #+BEGIN_SRC common-lisp
+      (asdf:make :jim)
+      #+END_SRC
+
+      this will produce an executable ~jim~ in the current directory
+
+** useage
+
+   jim's keybindings are based on vim's with the following exceptions:
+   - ~:w~ and ~:e~ take their arguments quoted: ~:e "test.lisp"~
+   - ~:e~ will open a file in a new buffer
+   
+   
