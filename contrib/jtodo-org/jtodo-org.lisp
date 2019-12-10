@@ -59,6 +59,12 @@
             (redraw-list))
           (lambda () t)))
 
+(bind-jtodo ("d")
+  (setf *todo-list* (list-remove *todo-list* (1+ *todo-item*)))
+  (setf *todo-item* (max 0 (min (- (length *todo-list*) 2) *todo-item*)))
+  (jtodo-set-cur)
+  (redraw-list))
+
 (bind-jtodo ("c")
   (setf *todo-list* (list-clear-done *todo-list*))
   (file-write-list *todo-list*)
