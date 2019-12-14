@@ -45,6 +45,8 @@
     set-cmd
     flush-cmd
     cmd
+    set-default-cursor
+    cursor-style
     prompt))
 
 (in-package :jim.api)
@@ -238,6 +240,36 @@
 
 (defun cmd ()
   (jim-editor:editor-cmd *editor*))
+
+;; cursor style
+
+(defvar *default-cursor* nil)
+
+(defun cursor-form (form)
+  (cond
+    ((null form) 0)
+    ((equal form '(:block t))       1)
+    ((equal form '(:block nil))     2)
+    ((equal form '(:underline t))   3)
+    ((equal form '(:underline nil)) 4)
+    ((equal form '(:i-beam t))      5)
+    ((equal form '(:i-beam nil))    6)
+    (t (error "invalid cursor specifier"))))
+
+(defun set-default-cursor (style &optional (blinking t))
+  "configures jim's default cursor style. if unset,
+   the terminal's default will be used"
+  (setf *default-cursor*
+        (if style
+            (list style blinking)
+            nil)))
+
+(defun cursor-style (style &optional (blinking t))
+  "set the cursor style. :default will reset to the default"
+  (jim-utils:command (cursor-form (if (eq style :default)
+                                      *default-cursor*
+                                      (list style blinking)))
+                     " q"))
 
 ;; prompt api -- a higher level command interface
 

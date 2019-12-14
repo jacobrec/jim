@@ -23,11 +23,13 @@
 (defun normal-mode ()
   "enter normal mode"
   (set-bindings *normal-bindings*)
+  (cursor-style :default)
   (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
   (set-bindings *insert-bindings*)
+  (cursor-style :i-beam)
   (set-mode :insert))
 
 (defun command-mode ()
