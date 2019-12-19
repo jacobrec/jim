@@ -9,7 +9,6 @@
     #:commit-scratch
     #:begin-scratch
     #:make-buffer
-    #:buffer-head
     #:buffer-contents
     #:open-buff
     #:write-buff

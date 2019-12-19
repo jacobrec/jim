@@ -84,7 +84,7 @@
   (tab-keybindings (nth (editor-selected-tab edit) (editor-tabs edit))))
 
 (defun editor-rope (edit)
-  (jbedit:buffer-head (editor-buffer edit)))
+  (jbedit:buffer-contents (editor-buffer edit)))
 
 (defun editor-cur (edit)
   (tab-cur (nth (editor-selected-tab edit) (editor-tabs edit))))
@@ -224,4 +224,3 @@
   (set-dirty edit :status)
   (set-dirty edit :cmd)
   (setf (tab-mode (nth (editor-selected-tab edit) (editor-tabs edit))) mode))
-

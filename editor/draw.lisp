@@ -109,7 +109,7 @@
 
   ; Draw buffer
   (when (is-dirty edit :buffer)
-    (draw-buffer (jbedit:buffer-head (editor-buffer edit))))
+    (draw-buffer (jbedit:buffer-contents (editor-buffer edit))))
 
   ; Draw status bar
   (when (or t (is-dirty edit :status))
@@ -119,7 +119,7 @@
       (format nil "R:~a C~a || ~a"
               (cursor-line (editor-cur edit))
               (cursor-col (editor-cur edit))
-              (jbrope:rope-len (jbedit:buffer-head (editor-buffer edit))))))
+              (jbrope:rope-len (jbedit:buffer-contents (editor-buffer edit))))))
 
   ; Draw command propmt
   (when (is-dirty edit :cmd)
@@ -131,5 +131,3 @@
              (+ 2 (cursor-line (editor-cur edit)))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
-
-
