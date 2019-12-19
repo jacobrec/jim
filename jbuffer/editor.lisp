@@ -6,8 +6,10 @@
   (:nicknames jbedit)
   (:use :cl)
   (:export
+    #:commit-scratch
+    #:begin-scratch
     #:make-buffer
-    #:buffer-head
+    #:buffer-contents
     #:open-buff
     #:write-buff
     #:buffer-dirty
@@ -26,10 +28,43 @@
 
 
 (defstruct buffer
-  stack  ; the stack of buffer snapshots (terminated when car is not list)
-  redo   ; the stack of undone snapshots
-  dirty  ; whether or not the buffer has been updated
-  fname) ; the file the buffer is associated with
+  stack       ; the stack of buffer snapshots (terminated when car is not list)
+  redo        ; the stack of undone snapshots
+  dirty       ; whether or not the buffer has been updated
+  scratch     ; the scratch buffer
+  scratch-idx ; the index the scratch buffer starts at
+  fname)      ; the file the buffer is associated with
+
+(defun merge-scratch (rope scratch idx)
+  (if (or (null scratch) (zerop (length scratch)))
+      rope
+      (let* ((ropes (jbrope:split rope (- idx (length scratch))))
+             (left (first ropes))
+             (right (second ropes)))
+        (jbrope:concat left (jbrope:str-to-rope scratch) right))))
+
+(defun commit-scratch (buff)
+  (if (buffer-scratch buff)
+    (make-buffer
+     :stack (cons (merge-scratch (buffer-head buff)
+                                 (buffer-scratch buff)
+                                 (buffer-scratch-idx buff))
+                  (buffer-stack buff))
+     :redo nil
+     :dirty t
+     :scratch nil
+     :scratch-idx nil
+     :fname (buffer-fname buff))
+    buff))
+
+(defun begin-scratch (buff idx)
+  (make-buffer
+   :stack (buffer-stack buff)
+   :redo  (buffer-redo buff)
+   :dirty (buffer-dirty buff)
+   :scratch ""
+   :scratch-idx idx
+   :fname (buffer-fname buff)))
 
 
 (defun buffer-head (buf)
@@ -38,6 +73,10 @@
       (car stack)
       stack)))
 
+(defun buffer-contents (buff)
+  (merge-scratch (buffer-head buff)
+                 (buffer-scratch buff)
+                 (buffer-scratch-idx buff)))
 
 (defun fname-to-string (fname)
   (with-open-file (strm fname
@@ -54,6 +93,8 @@
     :stack (jbrope:str-to-rope (fname-to-string fname))
     :redo nil
     :dirty nil
+    :scratch nil
+    :scratch-idx nil
     :fname fname))
 
 
@@ -74,33 +115,49 @@
       :stack (buffer-stack buff)
       :redo  (buffer-redo buff)
       :dirty dirty
+      :scratch (buffer-scratch buff)
+      :scratch-idx (buffer-scratch-idx buff)
       :fname (buffer-fname buff))))
 
 
 (defun insert-coord (buff str lines &optional (cols 0))
   (insert buff str (jbrope:coord-to-idx lines cols)))
 
+(defun insert-scratch (buff str)
+  (make-buffer
+   :stack (buffer-stack buff)
+   :redo  (buffer-redo buff)
+   :dirty t
+   :scratch (concatenate 'string (buffer-scratch buff) str)
+   :scratch-idx (+ (buffer-scratch-idx buff) (length str))
+   :fname (buffer-fname buff)))
 
 (defun insert (buff str i)
-  (make-buffer
-    :stack (cons
-             (jbrope:insert
-               (buffer-head buff)
-               (jbrope:str-to-rope str)
-               i)
-             (buffer-stack buff))
-    :redo nil
-    :dirty t
-    :fname (buffer-fname buff)))
+  (if (equal i (buffer-scratch-idx buff))
+      (insert-scratch buff str)
+      (progn
+        (setq buff (commit-scratch buff))
+        (make-buffer
+         :stack (cons
+                 (jbrope:insert
+                  (buffer-head buff)
+                  (jbrope:str-to-rope str)
+                  i)
+                 (buffer-stack buff))
+         :redo nil
+         :dirty t
+         :fname (buffer-fname buff)))))
 
 
 (defun del-from-coord (buff s-line e-line &optional (s-cols 0) (e-cols 0))
+  (setq buff (commit-scratch buff))
   (del-from buff
             (jbrope:coord-to-idx s-line s-cols)
             (jbrope:coord-to-idx e-line e-cols)))
 
 
 (defun del-from (buff start end)
+  (setq buff (commit-scratch buff))
   (make-buffer
     :stack (cons
              (jbrope:del-from (buffer-head buff) start end)
@@ -111,6 +168,7 @@
 
 
 (defun del-coord-n (buff sline scol n)
+  (setq buff (commit-scratch buff))
   (let ((i (jbrope:coord-to-idx sline scol)))
     (if (> n 0)
       (del-from buff i (+ i n))
@@ -118,6 +176,7 @@
 
 
 (defun undo (buff)
+  (setq buff (commit-scratch buff))
   (if (listp (buffer-stack buff))
     (make-buffer
       :stack (cdr (buffer-stack buff))

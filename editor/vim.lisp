@@ -22,18 +22,21 @@
 
 (defun normal-mode ()
   "enter normal mode"
+  (commit-scratch)
   (set-bindings *normal-bindings*)
   (cursor-style :default)
   (set-mode :normal))
 
 (defun insert-mode ()
   "enter insert mode"
+  (begin-scratch)
   (set-bindings *insert-bindings*)
   (cursor-style :i-beam)
   (set-mode :insert))
 
 (defun command-mode ()
   "enter command mode"
+  (commit-scratch)
   (let ((old-mode (mode))
         (buff (current-buffer)))
     (set-mode :cmd)
