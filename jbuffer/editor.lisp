@@ -38,13 +38,13 @@
 (defun merge-scratch (rope scratch idx)
   (if (or (null scratch) (zerop (length scratch)))
       rope
-      (let* ((ropes (jbrope:split rope idx))
-             (left (car ropes))
-             (right (cdr ropes)))
+      (let* ((ropes (jbrope:split rope (- idx (length scratch))))
+             (left (first ropes))
+             (right (second ropes)))
         (jbrope:concat left (jbrope:str-to-rope scratch) right))))
 
-(defun commit-scratch (buffer)
-  (if (buffer-scratch buffer)
+(defun commit-scratch (buff)
+  (if (buffer-scratch buff)
     (make-buffer
      :stack (cons (merge-scratch (buffer-head buff)
                                  (buffer-scratch buff)
@@ -55,13 +55,13 @@
      :scratch nil
      :scratch-idx nil
      :fname (buffer-fname buff))
-    buffer))
+    buff))
 
 (defun begin-scratch (buff idx)
   (make-buffer
    :stack (buffer-stack buff)
    :redo  (buffer-redo buff)
-   :dirty (buffer-dirty dirty)
+   :dirty (buffer-dirty buff)
    :scratch ""
    :scratch-idx idx
    :fname (buffer-fname buff)))

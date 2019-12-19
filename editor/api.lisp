@@ -33,6 +33,8 @@
     cursor-index
     cursor-line
     cursor-col
+    begin-scratch
+    commit-scratch
     slide-cursor
     del-range
     del
@@ -187,6 +189,16 @@
   (jim-utils:cursor-col (jim-editor:tab-cur buff)))
 
 ;; editing
+
+(defun begin-scratch (&optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:begin-scratch (jim-editor:tab-buffer buff)
+                              (jim-utils:cursor-index
+                               (jim-editor:tab-cur buff)))))
+
+(defun commit-scratch (&optional (buff (current-buffer)))
+  (setf (jim-editor:tab-buffer buff)
+        (jbedit:commit-scratch (jim-editor:tab-buffer buff))))
 
 (defun del-range (start end &optional (buff (current-buffer)))
   (setf (jim-editor:tab-buffer buff)
