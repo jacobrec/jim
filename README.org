@@ -20,7 +20,7 @@
 
       this will produce an executable ~jim~ in the current directory
 
-** useage
+** usage
 
    jim's keybindings are based on vim's with the following exceptions:
    - ~:w~ and ~:e~ take their arguments quoted: ~:e "test.lisp"~
