@@ -2,7 +2,7 @@
 
 ** installation
 
-   Jim is still an unfinished peice of software.
+   Jim is still an unfinished piece of software.
 
    There are 2 ways to run it:
 
