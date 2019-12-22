@@ -139,8 +139,7 @@
     (when (>= (cursor-line (tab-cur (editor-tab edit))) end)
       (setf (tab-line (editor-tab edit))
             (- (cursor-line (tab-cur (editor-tab edit)))
-               (term-height)
-               -4)) ; TODO: anything but this
+               (- end start 1)))
       (set-dirty edit :buffer))))
 
 
