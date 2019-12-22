@@ -82,7 +82,7 @@
        (move-to 1 i)
        (command 2 #\K)))
 
-(defun draw-buffer (rbuf)
+(defun draw-buffer (rbuf &optional (start 0) (end -1))
   (clear-lines 2 (- (term-height) 2))
   (move-to 1 2)
   (draw-blank-line)
@@ -92,7 +92,8 @@
       (set-color BLU 'fg)
       (format t "~C~C~C" #\↵ #\newline #\return)
       (set-color RST 'fg)
-      (draw-blank-line))))
+      (draw-blank-line))
+    start end))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))
@@ -109,7 +110,11 @@
 
   ; Draw buffer
   (when (is-dirty edit :buffer)
-    (draw-buffer (jbedit:buffer-contents (editor-buffer edit))))
+    (draw-buffer (jbedit:buffer-contents (editor-buffer edit))
+                 (tab-line (editor-tab edit))
+                 (+ (tab-line (editor-tab edit))
+                    (term-height)
+                    -3))) ; TODO: anything but this
 
   ; Draw status bar
   (when (or t (is-dirty edit :status))
@@ -128,6 +133,7 @@
   (if (editor-cmdcur edit)
     (move-to (1+ (editor-cmdcur edit)) (term-height))
     (move-to (+ 1 (cursor-col (editor-cur edit)))
-             (+ 2 (cursor-line (editor-cur edit)))))
+             (+ 2 (- (cursor-line (editor-cur edit))
+                     (tab-line (editor-tab edit))))))
   (command "?25" #\h) ; Set cursor visible
   (finish-output))
