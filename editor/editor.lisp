@@ -11,6 +11,7 @@
            editor-mode
            editor-keybindings
            editor-tabs
+           editor-tab
            editor-selected-tab
            tab-mode
            tab-keybindings
@@ -18,6 +19,7 @@
            tab-name
            tab-buffer
            tab-cur
+           tab-line
            tab-dirty
 
            insert
@@ -42,6 +44,7 @@
   keybindings
   buffer
   cur
+  line ; line that buffer starts being printed at
   dname)
 
 (defun tab-name (tab)
@@ -113,7 +116,8 @@
     :mode :normal
     :keybindings nil
     :buffer (jbedit:open-buff filename)
-    :cur (make-cursor :index 0 :line 0 :col 0)))
+    :cur (make-cursor :index 0 :line 0 :col 0)
+    :line 0))
 
 (defun open-new-tab (edit filename)
   (let ((tab (open-tab filename)))
