@@ -124,6 +124,26 @@
     (setf (editor-tabs edit)
           (append (editor-tabs edit) (list tab)))))
 
+(defun update-text-area (edit)
+  "recalculate what area is shown based on cursor position"
+  (let ((start (tab-line (editor-tab edit)))
+        (end (+ (tab-line (editor-tab edit))
+                (term-height)
+                -3))) ; TODO: anything but this
+
+    (when (< (cursor-line (tab-cur (editor-tab edit))) start)
+      (setf (tab-line (editor-tab edit))
+            (cursor-line (tab-cur (editor-tab edit))))
+      (set-dirty edit :buffer))
+
+    (when (>= (cursor-line (tab-cur (editor-tab edit))) end)
+      (setf (tab-line (editor-tab edit))
+            (- (cursor-line (tab-cur (editor-tab edit)))
+               (term-height)
+               -4)) ; TODO: anything but this
+      (set-dirty edit :buffer))))
+
+
 ;; TODO: cursor movements are complex and probably wrong
 (defun slide-cursor (edit amount &optional (for-newline nil) (for-delete nil))
   (move-cols edit amount t (eq :insert (editor-mode edit)))
@@ -134,15 +154,20 @@
                     (jbrope:rope-ref (editor-rope edit)
                                      (1+ (cursor-index (editor-cur edit))))))
     (incf (cursor-index (editor-cur edit)))
-    (incf (cursor-col (editor-cur edit)))))
+    (incf (cursor-col (editor-cur edit))))
+  (update-text-area edit))
+
 (defun move-cursor-col (edit amount)
-  (move-cols edit amount nil (eq :insert (editor-mode edit))))
+  (move-cols edit amount nil (eq :insert (editor-mode edit)))
+  (update-text-area edit))
+
 (defun move-cursor-row (edit amount)
   (let ((c (cursor-col (editor-cur edit)))
         (c-row (cursor-line (editor-cur edit))))
     (move-rows edit amount)
     (unless (= c-row (cursor-line (editor-cur edit)))
-      (move-cols edit c nil (eq :insert (editor-mode edit))))))
+      (move-cols edit c nil (eq :insert (editor-mode edit)))))
+  (update-text-area edit))
 
 (defun move-cols (edit c wrap insert)
   (let* ((cur (editor-cur edit))
