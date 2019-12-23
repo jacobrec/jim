@@ -8,9 +8,9 @@
   (stty '("-echo"))
   (stty '("raw"))
   (jim-utils:command "?1049" #\h)
+  (jim-user-util:load-jimrc)
   (let ((jim.api:*editor* (new-editor (uiop:command-line-arguments))))
     (vim:use-vim-bindings)
-    (jim-user-util:load-jimrc)
     (loop while (jim.api:is-running) do
       (jim-io:draw-screen jim.api:*editor*)
       (let ((bind:*key-bindings* (or (editor-keybindings jim.api:*editor*)

@@ -1,6 +1,7 @@
 (defpackage :jim-editor
   (:use :common-lisp :jim-utils)
-  (:export open-new-tab
+  (:export *default-params*
+           open-new-tab
            new-editor
            editor-buffer
            editor-cur
@@ -20,6 +21,8 @@
            tab-buffer
            tab-cur
            tab-line
+           tab-params
+           tab-param
            tab-dirty
 
            insert
@@ -45,6 +48,7 @@
   buffer
   cur
   line ; line that buffer starts being printed at
+  params ; alist of optional tab-specific settings
   dname)
 
 (defun tab-name (tab)
@@ -111,12 +115,19 @@
   (set-editor-buffer edit (jbedit:write-buff (editor-buffer edit) name)))
 
 ;; tab manipualtion
+
+(defvar *default-params* nil)
+
+(defun tab-param (tab key)
+  (cdr (assoc key (tab-params tab))))
+
 (defun open-tab (filename)
   (make-tab
     :mode :normal
     :keybindings nil
     :buffer (jbedit:open-buff filename)
     :cur (make-cursor :index 0 :line 0 :col 0)
+    :params *default-params*
     :line 0))
 
 (defun open-new-tab (edit filename)
