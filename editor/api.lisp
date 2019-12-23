@@ -359,7 +359,8 @@
 
 (defun set-param (key value &optional (buff (current-buffer)))
   (setf (jim-editor:tab-params buff)
-        (acons key value (jim-editor:tab-params buff))))
+        (acons key value (jim-editor:tab-params buff)))
+  (jim-editor:set-dirty *editor* :buffer))
 
 (defun set-default-param (key value)
   (setf jim-editor:*default-params*

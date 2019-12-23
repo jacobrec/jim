@@ -9,7 +9,8 @@
     command-mode
     bind-normal
     bind-insert
-    defcmd))
+    defcmd
+    reexport))
 
 (in-package :jim.vim)
 
@@ -175,6 +176,15 @@
      (setf *package* old-pkg)
      (setf *readtable* old-rtable)))
 
+(defmacro reexport (sym)
+  `(let ((old-pkg *package*)
+         (old-rtable *readtable*))
+     (in-package :vim-cmd)
+     (import ',sym)
+     (export ',sym)
+     (setf *package* old-pkg)
+     (setf *readtable* old-rtable)))
+
 (defun quit-buff (&optional (buff (current-buffer)))
   (if (> (num-buffers) 1)
       (close-buffer buff)
@@ -218,3 +228,6 @@
 
 (defcmd e (name)
   (new-buffer name))
+
+(reexport set-param)
+(reexport set-default-param)
