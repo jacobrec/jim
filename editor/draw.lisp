@@ -140,7 +140,8 @@
 
   (if (editor-cmdcur edit)
     (move-to (1+ (editor-cmdcur edit)) (term-height))
-    (move-to (+ 1 (cursor-col (editor-cur edit)))
+    (move-to (+ (if (tab-param (editor-tab edit) :numbers) 6 1)
+                (cursor-col (editor-cur edit)))
              (+ 2 (- (cursor-line (editor-cur edit))
                      (tab-line (editor-tab edit))))))
   (command "?25" #\h) ; Set cursor visible
