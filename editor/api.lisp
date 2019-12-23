@@ -49,7 +49,11 @@
     cmd
     set-default-cursor
     cursor-style
-    prompt))
+    prompt
+    get-param
+    get-default-param
+    set-param
+    set-default-param))
 
 (in-package :jim.api)
 
@@ -344,3 +348,20 @@
     (set-cmd "")
     (set-bindings *old-bindings*)
     (funcall *prompt-callback* str)))
+
+;; params
+
+(defun get-param (key &optional (buff (current-buffer)))
+  (jim-editor:tab-param buff key))
+
+(defun get-default-param (key)
+  (cdr (assoc key jim-editor:*default-params*)))
+
+(defun set-param (key value &optional (buff (current-buffer)))
+  (setf (jim-editor:tab-params buff)
+        (acons key value (jim-editor:tab-params buff)))
+  (jim-editor:set-dirty *editor* :buffer))
+
+(defun set-default-param (key value)
+  (setf jim-editor:*default-params*
+        (acons key value jim-editor:*default-params*)))

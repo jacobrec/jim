@@ -82,18 +82,25 @@
        (move-to 1 i)
        (command 2 #\K)))
 
-(defun draw-buffer (rbuf &optional (start 0) (end -1))
+(defun draw-buffer (edit rbuf &optional (start 0) (end -1))
   (clear-lines 2 (- (term-height) 2))
   (move-to 1 2)
   (draw-blank-line)
-  (jbrope::iterate-lines rbuf
-    (lambda (x)
-      (format t "~C~a" #\return x)
-      (set-color BLU 'fg)
-      (format t "~C~C~C" #\↵ #\newline #\return)
-      (set-color RST 'fg)
-      (draw-blank-line))
-    start end))
+  (let ((line-num (tab-line (editor-tab edit))))
+    (jbrope::iterate-lines rbuf
+      (lambda (x)
+        (incf line-num)
+        (format t "~C" #\return)
+        (when (tab-param (editor-tab edit) :numbers)
+          (set-color YEL 'fg)
+          (format t "~4@a " line-num)
+          (set-color RST 'fg))
+        (format t "~a" x)
+        (set-color BLU 'fg)
+        (format t "~C~C~C" #\↵ #\newline #\return)
+        (set-color RST 'fg)
+        (draw-blank-line))
+      start end)))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))
@@ -110,7 +117,8 @@
 
   ; Draw buffer
   (when (is-dirty edit :buffer)
-    (draw-buffer (jbedit:buffer-contents (editor-buffer edit))
+    (draw-buffer edit
+                 (jbedit:buffer-contents (editor-buffer edit))
                  (tab-line (editor-tab edit))
                  (+ (tab-line (editor-tab edit))
                     (term-height)
@@ -132,7 +140,8 @@
 
   (if (editor-cmdcur edit)
     (move-to (1+ (editor-cmdcur edit)) (term-height))
-    (move-to (+ 1 (cursor-col (editor-cur edit)))
+    (move-to (+ (if (tab-param (editor-tab edit) :numbers) 6 1)
+                (cursor-col (editor-cur edit)))
              (+ 2 (- (cursor-line (editor-cur edit))
                      (tab-line (editor-tab edit))))))
   (command "?25" #\h) ; Set cursor visible
