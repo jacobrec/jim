@@ -83,14 +83,17 @@
        (command 2 #\K)))
 
 (defun draw-buffer (edit rbuf &optional (start 0) (end -1))
-  (clear-lines 2 (- (term-height) 2))
+  ;(clear-lines 2 (- (term-height) 2))
   (move-to 1 2)
-  (draw-blank-line)
-  (let ((line-num (tab-line (editor-tab edit))))
+  ;(draw-blank-line)
+  (let ((line-num (tab-line (editor-tab edit)))
+        (drawn-lines 0))
     (jbrope::iterate-lines rbuf
       (lambda (x)
         (incf line-num)
+        (incf drawn-lines)
         (format t "~C" #\return)
+        (command 2 #\K) ; clear line
         (when (tab-param (editor-tab edit) :numbers)
           (set-color YEL 'fg)
           (format t "~4@a " line-num)
@@ -100,7 +103,11 @@
         (format t "~C~C~C" #\↵ #\newline #\return)
         (set-color RST 'fg)
         (draw-blank-line))
-      start end)))
+      start end)
+    (loop for x from drawn-lines to (- (term-height) 3)
+       do (format t "~C" #\return)
+       do (command 2 #\K) ; clear line
+       do (format t "~~~C" #\newline))))
 
 (defun is-dirty (edit place)
   (let ((res (find place (editor-redraw edit))))
